@@ -1,7 +1,7 @@
 {
   "name": "rqcli",
-  "version": "1.0.0",
-  "description": "### Description A CLI for configuring and running API calls.",
+  "version": "1.1.0",
+  "description": "CLI for Udacity Review API",
   "main": "index.js",
   "scripts": {},
   "repository": {
@@ -22,5 +22,8 @@
   "bin": {
     "rqcli": "./index.js"
   },
-  "homepage": "https://github.com/trolster/rqcli#readme"
+  "homepage": "https://github.com/trolster/rqcli#readme",
+  "dependencies": {
+    "commander": "^2.9.0"
+  }
 }
