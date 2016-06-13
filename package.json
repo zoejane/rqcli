@@ -1,0 +1,23 @@
+{
+  "name": "rqcli",
+  "version": "1.0.0",
+  "description": "### Description A CLI for configuring and running API calls.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trolster/rqcli.git"
+  },
+  "keywords": [
+    "cli",
+    "udacity",
+    "review",
+    "queue"
+  ],
+  "author": "Mikkel Trolle Larsen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/trolster/rqcli/issues"
+  },
+  "homepage": "https://github.com/trolster/rqcli#readme"
+}
