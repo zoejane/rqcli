@@ -25,6 +25,7 @@
   "homepage": "https://github.com/trolster/rqcli#readme",
   "dependencies": {
     "commander": "^2.9.0",
+    "node-notifier": "^4.6.0",
     "request": "^2.72.0"
   }
 }
