@@ -1,6 +1,6 @@
 {
   "name": "rqcli",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "description": "CLI for Udacity Review API",
   "main": "index.js",
   "scripts": {
@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/trolster/rqcli#readme",
   "dependencies": {
+    "colors": "^1.1.2",
     "commander": "^2.9.0",
     "moment": "^2.13.0",
     "node-notifier": "^4.6.0",

@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const readline = require('readline')
+const colors = require('colors')
 const path = require('path')
 const moment = require('moment')
 const program = require('commander')
@@ -38,6 +39,7 @@ program
     let renewToken = false
     let callsTotal = 0
     let assigned = 0
+    let reqAssignedIn = 0
 
     requestNewAssignment()
     /**
@@ -47,13 +49,16 @@ program
     */
     function requestNewAssignment () {
       renewToken = config.tokenAge - moment().dayOfYear() < 5 ? true : false
-      if (moment().seconds() % reqAssignedInterval === 0) {
+      if (reqAssignedIn === 0) {
         setPrompt('checking assigned')
         callsTotal++
-        apiCall('assigned').then(res => assigned = res.body.length)
+        apiCall('assigned')
+          .then(res => {
+            assigned = res.body.length
+          })
       } else {
         if (assigned === 2) {
-          setPrompt(`Max submissions assigned. Checking again in ${reqAssignedInterval - (moment().seconds() % reqAssignedInterval)} seconds.`)
+          setPrompt(`Max submissions assigned. Checking again in ${reqAssignedInterval - reqAssignedIn} seconds.`)
         } else {
           let id = projectQueue[callsTotal % projectQueue.length]
           setPrompt(`Requesting assignment for project ${id}`)
@@ -78,6 +83,7 @@ program
         }
       }
       setTimeout(() => {
+        reqAssignedIn = moment().seconds() % reqAssignedInterval
         requestNewAssignment()
       }, 1000)
     }
@@ -87,13 +93,13 @@ program
     function setPrompt (msg) {
       readline.cursorTo(process.stdout, 0, 0)
       readline.clearScreenDown(process.stdout)
-      if (renewToken) rl.write(`Token expires ${moment().dayOfYear(config.tokenAge).fromNow()}\n`)
-      rl.write(`Uptime: ${startTime.fromNow(true)}\n`)
-      rl.write(`Current task: ${msg}\n`)
-      rl.write(`Total server requests: ${callsTotal}\n`)
-      rl.write(`Currently assigned: ${assigned}\n`)
-      if (errorMsg) rl.write(`Server responded with ${errorMsg}\n`)
-      rl.write(`Press ${'ctrl+c'} to exit `)
+      if (renewToken) rl.write(`Token expires ${moment().dayOfYear(config.tokenAge).fromNow()}\n`.red)
+      rl.write(`Uptime: ${startTime.fromNow(true).white}\n`)
+      rl.write(`Current task: ${msg.white}\n`)
+      rl.write(`Total server requests: ${callsTotal}\n`.green)
+      rl.write(`Currently assigned: ${assigned}\n`.green)
+      if (errorMsg) rl.write(`Server responded with ${errorMsg}\n`.yellow)
+      rl.write(`Press ${'ctrl+c'} to exit`)
     }
   })
 
@@ -140,7 +146,7 @@ program
     }
     function showCerts () {
       config.certified.forEach(elem => {
-        console.log(`Project Name: ${elem.name}, Project ID: ${elem.id}`)
+        console.log(`Project Name: ${elem.name.white}, Project ID: ${elem.id.white}`)
       })
     }
   })
@@ -167,7 +173,7 @@ program
             })
           })
         } else {
-          console.log('No reviews are assigned at this time.')
+          console.log('No reviews are assigned at this time.'.yellow)
         }
       })
   })
