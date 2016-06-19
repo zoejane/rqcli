@@ -3,7 +3,9 @@
   "version": "1.3.0",
   "description": "CLI for Udacity Review API",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "start": "node index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/trolster/rqcli.git"
@@ -25,6 +27,7 @@
   "homepage": "https://github.com/trolster/rqcli#readme",
   "dependencies": {
     "commander": "^2.9.0",
+    "moment": "^2.13.0",
     "node-notifier": "^4.6.0",
     "request": "^2.72.0"
   }
