@@ -71,7 +71,7 @@ program
                   icon: path.join(__dirname, 'clipboard.svg'),
                   sound: 'Ping'
                 })
-              } else if (res.statusCode === 404) {
+              } else if (res.statusCode !== 404) {
                 errorMsg = res.statusCode
               }
             })
