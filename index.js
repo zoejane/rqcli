@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs')
+const readline = require('readline')
 const path = require('path')
 const moment = require('moment')
 const program = require('commander')
@@ -8,6 +9,7 @@ const notifier = require('node-notifier')
 const apiCall = require('./apiCall')
 const config = require('./apiConfig')
 
+let rl = readline.createInterface(process.stdin, process.stdout)
 
 /**
 * @desc Starts requesting the Udacity Review API queue for assignments. Accepts
@@ -15,22 +17,30 @@ const config = require('./apiConfig')
 */
 program
   .command('assign <projectId> [moreIds...]')
-  .description('poll the API queue for submissions')
+  .description('poll the Review queue for submissions')
   .action((projectId, moreIds) => {
-    // How often we check the number of submissions that are already assigned.
-    const reqAssignedInterval = 30
-    let ids = [projectId]
+    let projectQueue = [projectId]
     if (moreIds) {
-      moreIds.forEach(id => ids.push(id))
+      moreIds.forEach(id => projectQueue.push(id))
     }
+    // Start by validating the project ids entered by the user.
+    let inputProjectIds = new Set(projectQueue)
+    let certifiedProjectIds = new Set(config.certified.map(project => project.id))
+    let validIds = new Set([...inputProjectIds].filter(id => certifiedProjectIds.has(id)))
+    if (inputProjectIds.size !== validIds.size) {
+      let difference = new Set([...inputProjectIds].filter(id => !validIds.has(id)))
+      throw new Error(`Illegal Action: Not certified for project(s) ${[...difference].join(', ')}`)
+    }
+    // How often we check the number of submissions that are already assigned.
+    const startTime = moment()
+    const reqAssignedInterval = 60
+    let errorMsg = ''
     let renewToken = false
     let secondsSinceStart = 0
     let callsTotal = 0
     let assigned = 0
     let reqAssignedIn = 0
-    // Since the user can add the same id multiple times to weigh the requests
-    // to a particular project, we have to validate the Set() of the ids.
-    validateProjectIds(new Set(ids))
+
     requestNewAssignment()
     /**
     * @desc Every 30 seconds it checks how many submissions are currently assigned
@@ -40,27 +50,19 @@ program
     function requestNewAssignment () {
       // Test the age of the token every one days
       if (!renewToken && !(secondsSinceStart % 86400)) {
-        console.log('Checking renewal')
-        if (moment().dayOfYear - config.tokenAge > 25) {
-          renewToken = true
-        }
+        renewToken = config.tokenAge - moment().dayOfYear() < 5 ? true : false
       }
       if (reqAssignedIn === 0) {
-        console.log('checking assigned')
-        apiCall('assigned')
-          .then(res => {
-            if (res.body.length) {
-              assigned = res.body.length
-            } else {
-              console.log('No reviews are assigned at this time.')
-            }
-          })
+        setPrompt('checking assigned')
+        callsTotal++
+        apiCall('assigned').then(res => assigned = 2) //res.body.length
       } else {
         if (assigned === 2) {
-          console.log(`Max submissions assigned. Checking again in ${reqAssignedInterval - reqAssignedIn} seconds.`)
+          setPrompt(`Max submissions assigned. Checking again in ${reqAssignedInterval - reqAssignedIn} seconds.`)
         } else {
           let id = ids[callsTotal % ids.length]
-          console.log(`Requesting assignment for project ${id}`)
+          setPrompt(`Requesting assignment for project ${id}`)
+          errorMsg = ''
           callsTotal++
           apiCall('assign', 'POST', id)
             .then(res => {
@@ -74,34 +76,35 @@ program
                   icon: path.join(__dirname, 'clipboard.svg'),
                   sound: 'Ping'
                 })
-              } else if (res.statusCode !== 404) {
-                console.log(`Server responded with an error: ${res.statusCode}`)
+              } else if (res.statusCode === 404) {
+                errorMsg = res.statusCode
               }
-              callsTotal++
             })
         }
       }
       setTimeout(() => {
-        console.log('setting timeout')
         secondsSinceStart++
         reqAssignedIn = moment().seconds() % reqAssignedInterval
         requestNewAssignment()
       }, 1000)
     }
+    /**
+    * @desc Writes the current information to the terminal.
+    */
+    function setPrompt (msg) {
+      readline.cursorTo(process.stdout, 0, 0)
+      readline.clearScreenDown(process.stdout)
+      if (renewToken) rl.write(`Token expires ${moment().dayOfYear(config.tokenAge).fromNow()}\n`)
+      rl.write(`Uptime: ${startTime.fromNow(true)}\n`)
+      rl.write(`Current task: ${msg}\n`)
+      rl.write(`Total server requests: ${callsTotal}\n`)
+      rl.write(`Currently assigned: ${assigned}\n`)
+      if (errorMsg) rl.write(`Server responded with ${errorMsg}\n`)
+      rl.write(`Press ${'ctrl+c'} to exit `)
+    }
   })
 
-/**
-* Throws an error if not all of the ids are in the list of certified projects.
-*/
-function validateProjectIds (ids) {
-  let certified = new Set(config.certified.map(project => project.id))
-  let intersection = new Set([...ids].filter(id => certified.has(id)))
-  if (intersection.size < ids.size) {
-    let difference = new Set([...ids].filter(id => !intersection.has(id)))
-    console.log(`Not certified for the following projects ${[...difference].join(', ')}`)
-    throw new Error(`Illegal Action: Not certified.`)
-  }
-}
+
 
 /**
 * @desc Accepts a token and saves it to the config file.
@@ -111,7 +114,7 @@ program
   .description('set the token')
   .action(token => {
     config.token = token
-    config.tokenAge = moment().dayOfYear()
+    config.tokenAge = moment().dayOfYear() + 30
     fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
   })
 
@@ -142,13 +145,12 @@ program
     } else {
       showCerts()
     }
+    function showCerts () {
+      config.certified.forEach(elem => {
+        console.log(`Project Name: ${elem.name}, Project ID: ${elem.id}`)
+      })
+    }
   })
-
-function showCerts () {
-  config.certified.forEach(elem => {
-    console.log(`Project Name: ${elem.name}, Project ID: ${elem.id}`)
-  })
-}
 
 /**
 * @desc Sends a desctop notifications to the user with the name of the projects
