@@ -36,10 +36,8 @@ program
     const reqAssignedInterval = 60
     let errorMsg = ''
     let renewToken = false
-    let secondsSinceStart = 0
     let callsTotal = 0
     let assigned = 0
-    let reqAssignedIn = 0
 
     requestNewAssignment()
     /**
@@ -48,19 +46,16 @@ program
     * again. As long as it's less than 2 it requests a new assignment every second.
     */
     function requestNewAssignment () {
-      // Test the age of the token every one days
-      if (!renewToken && !(secondsSinceStart % 86400)) {
-        renewToken = config.tokenAge - moment().dayOfYear() < 5 ? true : false
-      }
-      if (reqAssignedIn === 0) {
+      renewToken = config.tokenAge - moment().dayOfYear() < 5 ? true : false
+      if (moment().seconds() % reqAssignedInterval === 0) {
         setPrompt('checking assigned')
         callsTotal++
-        apiCall('assigned').then(res => assigned = 2) //res.body.length
+        apiCall('assigned').then(res => assigned = res.body.length)
       } else {
         if (assigned === 2) {
-          setPrompt(`Max submissions assigned. Checking again in ${reqAssignedInterval - reqAssignedIn} seconds.`)
+          setPrompt(`Max submissions assigned. Checking again in ${reqAssignedInterval - (moment().seconds() % reqAssignedInterval)} seconds.`)
         } else {
-          let id = ids[callsTotal % ids.length]
+          let id = projectQueue[callsTotal % projectQueue.length]
           setPrompt(`Requesting assignment for project ${id}`)
           errorMsg = ''
           callsTotal++
@@ -83,8 +78,6 @@ program
         }
       }
       setTimeout(() => {
-        secondsSinceStart++
-        reqAssignedIn = moment().seconds() % reqAssignedInterval
         requestNewAssignment()
       }, 1000)
     }
