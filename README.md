@@ -33,6 +33,9 @@ npm install rqcli -g
 - Arguments: `<projectId> [moreIds...]`, space separated list of project ids to request for.
 - Tip: You can use the list of arguments to weigh the requested projects. If for instance, your list looked like this `rqcli assign 144 144 134 4`, the project `144` would take up half of all the calls to the API.
 
+**feedbacks**
+- _Gets the feedbacks for the last 30 days. All new feedbacks are saved._
+
 ### Project Styleguide
 
 [![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)

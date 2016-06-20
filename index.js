@@ -13,7 +13,42 @@ const config = require('./apiConfig')
 let rl = readline.createInterface(process.stdin, process.stdout)
 
 /**
-* @desc Starts requesting the Udacity Review API queue for assignments. Accepts
+* Gets the feedbacks for the last 30 days. All new feedbacks are saved.
+*/
+program
+  .command('feedbacks')
+  .description('save recent feedbacks from the API')
+  .action(() => {
+    apiCall('feedbacks')
+      .then(res => {
+        let feedbacks = []
+        res.body.forEach(fb => {
+          feedbacks.push({
+            id: fb.id,
+            projectName: fb.project.name,
+            rating: fb.rating,
+            body: fb.body,
+            projectURL: `https://review.udacity.com/#!/submissions/${fb.submission_id}`,
+            createdAt: fb.created_at
+          })
+        })
+        if (config.feedbacks) {
+          let savedFeedbackIds = new Set(config.feedbacks.map(fb => fb.id))
+          let newIds = feedbacks.filter(fb => !savedFeedbackIds.has(fb.id))
+          if (newIds) {
+            newIds.reverse().forEach(fb => config.feedbacks.unshift(fb))
+            fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
+          }
+        } else {
+          config.feedbacks = feedbacks
+          fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
+        }
+        process.exit()
+      })
+  })
+
+/**
+* Starts requesting the Udacity Review API queue for assignments. Accepts
 * a space separated list of project ids to request for.
 */
 program
@@ -41,10 +76,12 @@ program
     }
 
     let errorMsg = ''
+
     /**
-    * @desc Every 30 seconds it checks how many submissions are currently assigned
-    * to the user. If it's 2, it waits the length of the interval const and checks
-    * again. As long as it's less than 2 it requests a new assignment every second.
+    * Every 30 seconds it checks how many submissions are currently assigned
+    * to the user. If it's 2, it waits the length of the interval const and
+    * checks again. As long as it's less than 2 it requests a new assignment
+    * every second.
     */
     function requestNewAssignment () {
       if (reqAssignedIn === 0) {
@@ -87,7 +124,7 @@ program
     }
 
     /**
-    * @desc Writes the current information to the terminal.
+    * Writes the current information to the terminal.
     */
     function setPrompt (msg) {
       readline.cursorTo(process.stdout, 0, 0)
@@ -107,7 +144,7 @@ program
   })
 
 /**
-* @desc Accepts a token and saves it to the config file.
+* Accepts a token and saves it to the config file.
 */
 program
   .command('token <token>')
@@ -119,7 +156,7 @@ program
   })
 
 /**
-* @desc Logs the users certifications to the console.
+* Logs the users certifications to the console.
 * Options: --update, updates the certifications and logs them to the console.
 */
 program
@@ -153,7 +190,7 @@ program
   })
 
 /**
-* @desc Sends a desctop notifications to the user with the name of the projects
+* Sends a desctop notifications to the user with the name of the projects
 * that have been assigned and the id. It opens the review page for the
 * submission if you click on the notification.
 */
