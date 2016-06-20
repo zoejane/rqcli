@@ -20,10 +20,17 @@ program
   .command('assign <projectId> [moreIds...]')
   .description('poll the Review queue for submissions')
   .action((projectId, moreIds) => {
+    const startTime = moment()
+    const reqAssignedInterval = 60
+    let reqAssignedIn = 0
+    let assigned = 0
+    let callsTotal = 0
+
     let projectQueue = [projectId]
     if (moreIds) {
       moreIds.forEach(id => projectQueue.push(id))
     }
+
     // Start by validating the project ids entered by the user.
     let inputProjectIds = new Set(projectQueue)
     let certifiedProjectIds = new Set(config.certified.map(project => project.id))
@@ -32,23 +39,14 @@ program
       let difference = new Set([...inputProjectIds].filter(id => !validIds.has(id)))
       throw new Error(`Illegal Action: Not certified for project(s) ${[...difference].join(', ')}`)
     }
-    // How often we check the number of submissions that are already assigned.
-    const startTime = moment()
-    const reqAssignedInterval = 60
-    let errorMsg = ''
-    let renewToken = false
-    let callsTotal = 0
-    let assigned = 0
-    let reqAssignedIn = 0
 
-    requestNewAssignment()
+    let errorMsg = ''
     /**
     * @desc Every 30 seconds it checks how many submissions are currently assigned
     * to the user. If it's 2, it waits the length of the interval const and checks
     * again. As long as it's less than 2 it requests a new assignment every second.
     */
     function requestNewAssignment () {
-      renewToken = config.tokenAge - moment().dayOfYear() < 5 ? true : false
       if (reqAssignedIn === 0) {
         setPrompt('checking assigned')
         callsTotal++
@@ -87,13 +85,16 @@ program
         requestNewAssignment()
       }, 1000)
     }
+
     /**
     * @desc Writes the current information to the terminal.
     */
     function setPrompt (msg) {
       readline.cursorTo(process.stdout, 0, 0)
       readline.clearScreenDown(process.stdout)
-      if (renewToken) rl.write(`Token expires ${moment().dayOfYear(config.tokenAge).fromNow()}\n`.red)
+      if (config.tokenAge - moment().dayOfYear() < 5) {
+        rl.write(`Token expires ${moment().dayOfYear(config.tokenAge).fromNow()}\n`.red)
+      }
       rl.write(`Uptime: ${startTime.fromNow(true).white}\n`)
       rl.write(`Current task: ${msg.white}\n`)
       rl.write(`Total server requests: ${callsTotal}\n`.green)
@@ -101,9 +102,9 @@ program
       if (errorMsg) rl.write(`Server responded with ${errorMsg}\n`.yellow)
       rl.write(`Press ${'ctrl+c'} to exit`)
     }
+
+    requestNewAssignment()
   })
-
-
 
 /**
 * @desc Accepts a token and saves it to the config file.
@@ -146,7 +147,7 @@ program
     }
     function showCerts () {
       config.certified.forEach(elem => {
-        console.log(`Project Name: ${elem.name.white}, Project ID: ${elem.id.white}`)
+        rl.write(`Project Name: ${elem.name.white}, Project ID: ${elem.id.white}\n`)
       })
     }
   })
@@ -173,7 +174,7 @@ program
             })
           })
         } else {
-          console.log('No reviews are assigned at this time.'.yellow)
+          rl.write('No reviews are assigned at this time.\n'.yellow)
         }
       })
   })
