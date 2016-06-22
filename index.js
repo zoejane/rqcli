@@ -47,6 +47,8 @@ program
     if (moreIds) {
       moreIds.forEach(id => projectQueue.push(id))
     }
+    // projectQueue can have multiple instances of the same project id, so we
+    // test against the set of input ids.
     const inputProjectIds = new Set(projectQueue)
     const certifiedProjectIds = new Set(config.certified.map(project => project.id))
     const validIds = new Set([...inputProjectIds].filter(id => certifiedProjectIds.has(id)))
@@ -126,7 +128,7 @@ program
       rl.write(`Total server requests: ${callsTotal}\n`.green)
       rl.write(`Currently assigned: ${assigned}\n`.green)
       if (errorMsg) rl.write(`Server responded with ${errorMsg}\n`.yellow)
-      rl.write(`Press ${'ctrl+c'} to exit`)
+      rl.write(`Press ${'ctrl+c'} twice to exit`)
     }
 
     // Get the party started.
@@ -143,6 +145,7 @@ program
     config.token = token
     config.tokenAge = moment().dayOfYear() + 30
     fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
+    process.exit()
   })
 
 /**
@@ -176,6 +179,7 @@ program
       config.certified.forEach(elem => {
         rl.write(`Project Name: ${elem.name.white}, Project ID: ${elem.id.white}\n`)
       })
+      process.exit()
     }
   })
 
@@ -203,6 +207,7 @@ program
         } else {
           rl.write('No reviews are assigned at this time.\n'.yellow)
         }
+        process.exit()
       })
   })
 
