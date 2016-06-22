@@ -1,22 +1,32 @@
 #!/usr/bin/env node
 
+const pkg = require('./package')
 const fs = require('fs')
 const readline = require('readline')
 const colors = require('colors')
 const path = require('path')
 const moment = require('moment')
-const program = require('commander')
+const cli = require('commander')
 const notifier = require('node-notifier')
 const apiCall = require('./apiCall')
-const config = require('./apiConfig')
 
-let rl = readline.createInterface(process.stdin, process.stdout)
+const rl = readline.createInterface(process.stdin, process.stdout)
+
+try {
+  fs.statSync('./apiConfig.json')
+} catch (e) {
+  fs.writeFileSync('apiConfig.json', JSON.stringify({}, null, 2))
+}
+let config = require('./apiConfig')
+
+cli.name('rqcli')
+cli.version(pkg.version)
+  .usage('<command> [options]')
 
 /**
 * Gets the feedbacks for the last 30 days. All new feedbacks are saved.
 */
-program
-  .command('feedbacks')
+cli.command('feedbacks')
   .description('save recent feedbacks from the API')
   .action(() => {
     apiCall('feedbacks')
@@ -30,8 +40,7 @@ program
 * Starts requesting the Udacity Review API queue for assignments. Accepts
 * a space separated list of project ids to request for.
 */
-program
-  .command('assign <projectId> [moreIds...]')
+cli.command('assign <projectId> [moreIds...]')
   .description('poll the review queue for submissions')
   .option('-f, --feedbacks', 'periodically check for new feedbacks')
   .action((projectId, moreIds, options) => {
@@ -138,8 +147,7 @@ program
 /**
 * Accepts a token and saves it to the config file.
 */
-program
-  .command('token <token>')
+cli.command('token <token>')
   .description('set the token')
   .action(token => {
     config.token = token
@@ -152,8 +160,7 @@ program
 * Logs the users certifications to the console.
 * Options: --update, updates the certifications and logs them to the console.
 */
-program
-  .command('certs')
+cli.command('certs')
   .option('-u, --update', 'update certificatons')
   .description('get project certifications')
   .action(options => {
@@ -188,8 +195,7 @@ program
 * that have been assigned and the id. It opens the review page for the
 * submission if you click on the notification.
 */
-program
-  .command('assigned')
+cli.command('assigned')
   .description('get the submissions that are assigned to you')
   .action(() => {
     apiCall('assigned')
@@ -211,7 +217,21 @@ program
       })
   })
 
-program.parse(process.argv)
+cli.arguments('<cmd>')
+  .action((cmd) => {
+    console.log(
+        `\n ${`[ERROR] - Invalid command: ${cmd}`.red}
+        \n Run "rqcli --help" for a list of available commands.\n`
+      );
+    process.exit(0);
+  });
+
+cli.parse(process.argv)
+
+if (!cli.args.length) {
+  cli.parse([process.argv[0], process.argv[1], '-h']);
+  process.exit(0);
+}
 
 /**
 * Saves every new feedback and notifies the user if it's unread.
@@ -234,14 +254,7 @@ function processFeedbacks (res) {
           sound: 'Pop'
         })
       }
-      config.feedbacks.unshift({
-        id: fb.id,
-        projectName: fb.project.name,
-        rating: fb.rating,
-        body: fb.body,
-        projectURL: `https://review.udacity.com/#!/submissions/${fb.submission_id}`,
-        createdAt: fb.created_at
-      })
+      config.feedbacks.unshift(fb)
     })
   // Save any new feedbacks.
   fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
