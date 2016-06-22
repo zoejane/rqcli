@@ -21,28 +21,7 @@ program
   .action(() => {
     apiCall('feedbacks')
       .then(res => {
-        let feedbacks = []
-        res.body.forEach(fb => {
-          feedbacks.push({
-            id: fb.id,
-            projectName: fb.project.name,
-            rating: fb.rating,
-            body: fb.body,
-            projectURL: `https://review.udacity.com/#!/submissions/${fb.submission_id}`,
-            createdAt: fb.created_at
-          })
-        })
-        if (config.feedbacks) {
-          let savedFeedbackIds = new Set(config.feedbacks.map(fb => fb.id))
-          let newIds = feedbacks.filter(fb => !savedFeedbackIds.has(fb.id))
-          if (newIds) {
-            newIds.reverse().forEach(fb => config.feedbacks.unshift(fb))
-            fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
-          }
-        } else {
-          config.feedbacks = feedbacks
-          fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
-        }
+        processFeedbacks(res)
         process.exit()
       })
   })
@@ -53,47 +32,56 @@ program
 */
 program
   .command('assign <projectId> [moreIds...]')
-  .description('poll the Review queue for submissions')
-  .action((projectId, moreIds) => {
+  .description('poll the review queue for submissions')
+  .option('-f, --feedbacks', 'periodically check for new feedbacks')
+  .action((projectId, moreIds, options) => {
     const startTime = moment()
     const reqAssignedInterval = 60
-    let reqAssignedIn = 0
     let assigned = 0
     let callsTotal = 0
+    let tick = 0
+    let errorMsg = ''
 
+    // Validate the project ids entered by the user.
     let projectQueue = [projectId]
     if (moreIds) {
       moreIds.forEach(id => projectQueue.push(id))
     }
-
-    // Start by validating the project ids entered by the user.
-    let inputProjectIds = new Set(projectQueue)
-    let certifiedProjectIds = new Set(config.certified.map(project => project.id))
-    let validIds = new Set([...inputProjectIds].filter(id => certifiedProjectIds.has(id)))
+    const inputProjectIds = new Set(projectQueue)
+    const certifiedProjectIds = new Set(config.certified.map(project => project.id))
+    const validIds = new Set([...inputProjectIds].filter(id => certifiedProjectIds.has(id)))
     if (inputProjectIds.size !== validIds.size) {
-      let difference = new Set([...inputProjectIds].filter(id => !validIds.has(id)))
+      const difference = new Set([...inputProjectIds].filter(id => !validIds.has(id)))
       throw new Error(`Illegal Action: Not certified for project(s) ${[...difference].join(', ')}`)
     }
 
-    let errorMsg = ''
-
     /**
-    * Every 30 seconds it checks how many submissions are currently assigned
-    * to the user. If it's 2, it waits the length of the interval const and
+    * Checks how many submissions are currently assigned to the user at a
+    * constant interval. If it's 2, it waits the length of the interval and
     * checks again. As long as it's less than 2 it requests a new assignment
-    * every second.
+    * once every second.
     */
     function requestNewAssignment () {
-      if (reqAssignedIn === 0) {
+      // Check for new feedbacks every hour
+      if (options.feedbacks && tick % 3600 === 0) {
+        setPrompt('checking feedbacks')
+        apiCall('feedbacks')
+          .then(res => {
+            processFeedbacks(res)
+          })
+      }
+      // Check how many submissions have been assigned at a given interval.
+      if (tick % reqAssignedInterval === 0) {
         setPrompt('checking assigned')
-        callsTotal++
         apiCall('assigned')
           .then(res => {
             assigned = res.body.length
           })
       } else {
+        // If the max number of submissions is assigned we wait the interval.
+        // Otherwise we request an assignment from the API.
         if (assigned === 2) {
-          setPrompt(`Max submissions assigned. Checking again in ${reqAssignedInterval - reqAssignedIn} seconds.`)
+          setPrompt(`Max submissions assigned. Checking again in ${reqAssignedInterval - tick % reqAssignedInterval} seconds.`)
         } else {
           let id = projectQueue[callsTotal % projectQueue.length]
           setPrompt(`Requesting assignment for project ${id}`)
@@ -102,6 +90,7 @@ program
           apiCall('assign', 'POST', id)
             .then(res => {
               if (res.statusCode === 201) {
+                assigned++
                 let projectName = res.body.project.name
                 let submissionId = res.body.id
                 notifier.notify({
@@ -118,7 +107,7 @@ program
         }
       }
       setTimeout(() => {
-        reqAssignedIn = moment().seconds() % reqAssignedInterval
+        tick++
         requestNewAssignment()
       }, 1000)
     }
@@ -140,6 +129,7 @@ program
       rl.write(`Press ${'ctrl+c'} to exit`)
     }
 
+    // Get the party started.
     requestNewAssignment()
   })
 
@@ -190,7 +180,7 @@ program
   })
 
 /**
-* Sends a desctop notifications to the user with the name of the projects
+* Sends a desktop notifications to the user with the name of the projects
 * that have been assigned and the id. It opens the review page for the
 * submission if you click on the notification.
 */
@@ -217,3 +207,37 @@ program
   })
 
 program.parse(process.argv)
+
+/**
+* Saves every new feedback and notifies the user if it's unread.
+*/
+function processFeedbacks (res) {
+  config.feedbacks = config.feedbacks || []
+  const savedIds = new Set(config.feedbacks.map(fb => fb.id))
+  res.body
+    // Find all the new feedbacks.
+    .filter(fb => !savedIds.has(fb.id))
+    .reverse()
+    .forEach(fb => {
+      // Notify the user if the feedback is unread.
+      if (fb.read_at === '') {
+        notifier.notify({
+          title: `New ${fb.rating}-star Feedback!`,
+          message: `Project: ${fb.project.name}`,
+          open: `https://review.udacity.com/#!/submissions/${fb.submission_id}`,
+          icon: path.join(__dirname, 'clipboard.png'),
+          sound: 'Pop'
+        })
+      }
+      config.feedbacks.unshift({
+        id: fb.id,
+        projectName: fb.project.name,
+        rating: fb.rating,
+        body: fb.body,
+        projectURL: `https://review.udacity.com/#!/submissions/${fb.submission_id}`,
+        createdAt: fb.created_at
+      })
+    })
+  // Save any new feedbacks.
+  fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
+}
