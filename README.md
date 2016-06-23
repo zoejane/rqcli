@@ -11,12 +11,16 @@ npm install rqcli -g
 ```
 
 ### Setup
-1. Start by running `rqcli token <yourToken>`. This will create the `apiConfig.json` file in which your account information will be stored.
-2. Run `rqcli certs` which will get the projects you are certified for and save them in the config.
-3. Optionally check if you have any submissions currently assigned by running `rqcli assigned`.
-4. Optionally check for new feedbacks by running `rqcli feedbacks`. This also saves all new feedbacks to the config file.
+1. Start by running `rqcli setup <yourToken>`.
+    - This will create the `apiConfig.json` file where your token, certifications, and feedbacks are then stored.
+    - You will be notified of any submissions currently assigned.
+    - You will also be notified of any unread feedbacks.
 
 ### CLI commands
+
+**setup**
+- _Sets up the config file with token, certifications and feedbacks. Also notifies the user of any submissions that are currently assigned._
+- Arguments: `<token>`, your token which you can copy from your dashboard > API Access.
 
 **token**
 - _Stores an API Auth token and the day-of-year to be able to calculate the tokens age_
@@ -27,7 +31,7 @@ npm install rqcli -g
 - Options: `-u`, `--update`, updates your certifications.
 
 **assigned**
-- _Notifies the user of submissions that are assigned to them._
+- _Notifies the user of all submissions that are currently assigned to them._
 
 **assign**
 - _Starts requesting the Udacity Review API queue for assignments of the type specified in the commands arguments._

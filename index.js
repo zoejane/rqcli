@@ -23,6 +23,46 @@ cli.name('rqcli')
 cli.version(pkg.version)
   .usage('<command> [options]')
 
+  /**
+  * Sets up the config file with token, certifications and feedbacks. Also
+  * notifies the user of any submissions that are currently assigned.
+  */
+cli.command('setup <token>')
+  .description('set up you review environment')
+  .action(token => {
+    config.token = token
+    fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
+    config.tokenAge = moment().dayOfYear() + 30
+    config.certified = []
+    config.feedbacks = []
+    apiCall('certifications').then(res => {
+      res.body.filter(elem => {
+        if (elem.status === 'certified') {
+          config.certified.push({
+            name: elem.project.name,
+            id: elem.project_id.toString()
+          })
+        }
+      })
+      return apiCall('feedbacks')
+    }).then(res => {
+      processFeedbacks(res)
+      fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
+      return apiCall('assigned')
+    }).then(res => {
+      res.body.forEach(sub => {
+        notifier.notify({
+          title: 'Currently Assigned:',
+          message: `${sub.project.name}, ID: ${sub.id}`,
+          open: `https://review.udacity.com/#!/submissions/${sub.id}`,
+          icon: path.join(__dirname, 'clipboard.svg'),
+          sound: 'Ping'
+        })
+      })
+      process.exit()
+    })
+  })
+
 /**
 * Gets the feedbacks for the last 30 days. All new feedbacks are saved.
 */
