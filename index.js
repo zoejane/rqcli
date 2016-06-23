@@ -12,13 +12,14 @@ const apiCall = require('./apiCall')
 
 const rl = readline.createInterface(process.stdin, process.stdout)
 
+// Create the config file if it doesn't exist.
 try {
-  fs.statSync('./apiConfig.json')
+  var config = require('./rqConfig.json')
 } catch (e) {
-  fs.writeFileSync('apiConfig.json', JSON.stringify({}, null, 2))
+  fs.writeFileSync('rqConfig.json', JSON.stringify({}, null, 2))
 }
-let config = require('./apiConfig')
 
+// Instantiate the CLI
 cli.name('rqcli')
 cli.version(pkg.version)
   .usage('<command> [options]')
@@ -31,7 +32,7 @@ cli.command('setup <token>')
   .description('set up you review environment')
   .action(token => {
     config.token = token
-    fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
+    fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
     config.tokenAge = moment().dayOfYear() + 30
     config.certified = []
     config.feedbacks = []
@@ -47,7 +48,7 @@ cli.command('setup <token>')
       return apiCall('feedbacks')
     }).then(res => {
       processFeedbacks(res)
-      fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
+      fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
       return apiCall('assigned')
     }).then(res => {
       res.body.forEach(sub => {
@@ -192,7 +193,7 @@ cli.command('token <token>')
   .action(token => {
     config.token = token
     config.tokenAge = moment().dayOfYear() + 30
-    fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
+    fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
     process.exit()
   })
 
@@ -216,7 +217,7 @@ cli.command('certs')
               })
             }
           })
-          fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
+          fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
           showCerts()
         })
     } else {
@@ -285,7 +286,7 @@ function processFeedbacks (res) {
     .reverse()
     .forEach(fb => {
       // Notify the user if the feedback is unread.
-      if (fb.read_at === '') {
+      if (fb.read_at === null) {
         notifier.notify({
           title: `New ${fb.rating}-star Feedback!`,
           message: `Project: ${fb.project.name}`,
@@ -297,5 +298,5 @@ function processFeedbacks (res) {
       config.feedbacks.unshift(fb)
     })
   // Save any new feedbacks.
-  fs.writeFileSync('apiConfig.json', JSON.stringify(config, null, 2))
+  fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
 }

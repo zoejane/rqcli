@@ -37,7 +37,7 @@ module.exports = (task, method = 'GET', id = '') => {
     'url': createEndpointsURL(task, id),
     'method': method,
     'headers': {
-      'Authorization': require('./apiConfig').token
+      'Authorization': require('./rqConfig').token
     },
     'json': true
   }
