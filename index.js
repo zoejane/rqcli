@@ -1,23 +1,24 @@
 #!/usr/bin/env node
 
-const pkg = require('./package')
 const fs = require('fs')
-const readline = require('readline')
-const colors = require('colors')
 const path = require('path')
+const colors = require('colors')
 const moment = require('moment')
 const cli = require('commander')
 const notifier = require('node-notifier')
-const apiCall = require('./apiCall')
+const pkg = require('./package')
 
+const readline = require('readline')
 const rl = readline.createInterface(process.stdin, process.stdout)
 
 // Create the config file if it doesn't exist.
 try {
-  var config = require('./rqConfig.json')
+  fs.statSync('./rqConfig.json')
 } catch (e) {
   fs.writeFileSync('rqConfig.json', JSON.stringify({}, null, 2))
 }
+const config = require('./rqConfig')
+const apiCall = require('./apiCall')
 
 // Instantiate the CLI
 cli.name('rqcli')
@@ -60,21 +61,8 @@ cli.command('setup <token>')
           sound: 'Ping'
         })
       })
-      process.exit()
+      process.exit(0)
     })
-  })
-
-/**
-* Gets the feedbacks for the last 30 days. All new feedbacks are saved.
-*/
-cli.command('feedbacks')
-  .description('save recent feedbacks from the API')
-  .action(() => {
-    apiCall('feedbacks')
-      .then(res => {
-        processFeedbacks(res)
-        process.exit()
-      })
   })
 
 /**
@@ -196,7 +184,7 @@ cli.command('token <token>')
     config.token = token
     config.tokenAge = moment().dayOfYear() + 30
     fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
-    process.exit()
+    process.exit(0)
   })
 
 /**
@@ -229,7 +217,7 @@ cli.command('certs')
       config.certified.forEach(elem => {
         rl.write(`Project Name: ${elem.name.white}, Project ID: ${elem.id.white}\n`)
       })
-      process.exit()
+      process.exit(0)
     }
   })
 
@@ -256,7 +244,20 @@ cli.command('assigned')
         } else {
           rl.write('No reviews are assigned at this time.\n'.yellow)
         }
-        process.exit()
+        process.exit(0)
+      })
+  })
+
+/**
+* Gets the feedbacks for the last 30 days. All new feedbacks are saved.
+*/
+cli.command('feedbacks')
+  .description('save recent feedbacks from the API')
+  .action(() => {
+    apiCall('feedbacks')
+      .then(res => {
+        processFeedbacks(res)
+        process.exit(0)
       })
   })
 
@@ -280,7 +281,6 @@ if (!cli.args.length) {
 * Saves every new feedback and notifies the user if it's unread.
 */
 function processFeedbacks (res) {
-  config.feedbacks = config.feedbacks || []
   const savedIds = new Set(config.feedbacks.map(fb => fb.id))
   res.body
     // Find all the new feedbacks.

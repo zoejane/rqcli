@@ -4,9 +4,18 @@
 # Description
 A CLI for configuring and running API calls against the Udacity Review API.
 
-# Installation
-```shell
-npm install rqcli -g
+# :arrow_double_down: Installation
+
+### Requirements
+- [Node.js](https://nodejs.org/en/download/) v6.0.0 or higher
+- NPM (v3.0.0+ highly recommended) (this comes with Node.js)
+
+### Instructions
+
+`rqcli` is a [Node](https://nodejs.org/) module. So, as long as you have Node.js and NPM installed, installing `rqcli` is as simple as running this in a terminal at the root of your project:
+
+```sh
+$ npm install rqcli -g
 ```
 
 # Setup
@@ -65,7 +74,7 @@ Start by running `rqcli setup <yourToken>`. Some tokens include dashes (`-`) and
 1. Fork this repository
 2. `git clone` your fork down to your local machine
 3. `cd` into the directory for your fork
-4. run `npm install`
+4. run `npm install -g`
 5. Submit a PR for any contributions.
 
 # License
