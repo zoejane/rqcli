@@ -22,14 +22,14 @@ try {
 // Instantiate the CLI
 cli.name('rqcli')
 cli.version(pkg.version)
-  .usage('<command> [options]')
+  .usage('<command> <args> [options]')
 
   /**
   * Sets up the config file with token, certifications and feedbacks. Also
   * notifies the user of any submissions that are currently assigned.
   */
 cli.command('setup <token>')
-  .description('set up you review environment')
+  .description('set up your review environment')
   .action(token => {
     config.token = token
     fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
@@ -92,20 +92,12 @@ cli.command('assign <projectId> [moreIds...]')
     let tick = 0
     let errorMsg = ''
 
-    // Validate the project ids entered by the user.
+    // Make a list of all the project ids entered by the user.
     let projectQueue = [projectId]
-    if (moreIds) {
-      moreIds.forEach(id => projectQueue.push(id))
-    }
-    // projectQueue can have multiple instances of the same project id, so we
-    // test against the set of input ids.
-    const inputProjectIds = new Set(projectQueue)
-    const certifiedProjectIds = new Set(config.certified.map(project => project.id))
-    const validIds = new Set([...inputProjectIds].filter(id => certifiedProjectIds.has(id)))
-    if (inputProjectIds.size !== validIds.size) {
-      const difference = new Set([...inputProjectIds].filter(id => !validIds.has(id)))
-      throw new Error(`Illegal Action: Not certified for project(s) ${[...difference].join(', ')}`)
-    }
+    if (moreIds) moreIds.forEach(id => projectQueue.push(id))
+
+    validateInputIds(new Set(projectQueue))
+    requestNewAssignment()
 
     /**
     * Checks how many submissions are currently assigned to the user at a
@@ -181,8 +173,18 @@ cli.command('assign <projectId> [moreIds...]')
       rl.write(`Press ${'ctrl+c'} twice to exit`)
     }
 
-    // Get the party started.
-    requestNewAssignment()
+    /**
+    * projectQueue can have multiple instances of the same project id, so we
+    * test against the set of input ids.
+    */
+    function validateInputIds (ids) {
+      const certifiedIds = new Set(config.certified.map(p => p.id))
+      const validIds = new Set([...ids].filter(id => certifiedIds.has(id)))
+      if (ids.size !== validIds.size) {
+        const difference = new Set([...ids].filter(id => !validIds.has(id)))
+        throw new Error(`Illegal Action: Not certified for project(s) ${[...difference].join(', ')}`)
+      }
+    }
   })
 
 /**
