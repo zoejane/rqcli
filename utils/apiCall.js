@@ -1,17 +1,14 @@
 #!/usr/bin/env node
 
-'use strict'
-
 const request = require('request')
 
 /**
-* @desc createEndpointsURL oncatenate the parts of an endpoint url from a task
-* and an id.
+* Concatenate the parts of an endpoint url from a task and an id.
 * @param {string} task The name of the task to be requested
 * @param {string} id The id of either a project or a submission
 * @return {string} The endpoint URL
 */
-function createEndpointsURL (task, id) {
+function url (task, id) {
   let base = 'https://review-api.udacity.com/api/v1'
   return {
     'certifications': `${base}/me/certifications/`,
@@ -32,15 +29,8 @@ function createEndpointsURL (task, id) {
 * @param {string} id The id of the project or the submission
 * @return Promise with the response
 */
-module.exports = (task, method = 'GET', id = '') => {
-  var options = {
-    'url': createEndpointsURL(task, id),
-    'method': method,
-    'headers': {
-      'Authorization': require('./rqConfig').token
-    },
-    'json': true
-  }
+module.exports = (options, task, id = '') => {
+  options.url = url(task, id)
   return new Promise((resolve, reject) => {
     request(options, (err, res, body) => {
       if (err) {

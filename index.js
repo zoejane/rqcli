@@ -7,62 +7,96 @@ const moment = require('moment')
 const cli = require('commander')
 const notifier = require('node-notifier')
 const pkg = require('./package')
+const apiCall = require('./utils').apiCall
+let config = require('./config')
 
 const readline = require('readline')
 const rl = readline.createInterface(process.stdin, process.stdout)
 
-// Create the config file if it doesn't exist.
-try {
-  fs.statSync('./rqConfig.json')
-} catch (e) {
-  fs.writeFileSync('rqConfig.json', JSON.stringify({}, null, 2))
-}
-const config = require('./rqConfig')
-const apiCall = require('./apiCall')
+let opts = config.options(config.auth.token)
 
 // Instantiate the CLI
 cli.name('rqcli')
 cli.version(pkg.version)
   .usage('<command> <args> [options]')
 
-  /**
-  * Sets up the config file with token, certifications and feedbacks. Also
-  * notifies the user of any submissions that are currently assigned.
-  */
-cli.command('setup <token>')
+/**
+* Accepts a token and saves it to the config file.
+*/
+cli.command('token <token>')
+  .description('set the token')
+  .action(token => {
+    let tokenAge = moment().dayOfYear() + 30
+    config.auth.save(token, tokenAge)
+    console.log(config)
+    process.exit(0)
+  })
+
+/**
+* Logs the users certifications to the console.
+* Options: --update, updates the certifications and logs them to the console.
+*/
+cli.command('certs')
+  .option('-u, --update', 'update certificatons')
+  .description('get project certifications')
+  .action(options => {
+    if (options.update || !config.certs.certified) {
+      apiCall(opts, 'certifications')
+        .then(res => {
+          let certs = res.body
+            .filter(cert => cert.status === 'certified')
+            .map(cert => {
+              return {
+                name: cert.project.name,
+                id: cert.project_id.toString()
+              }
+            })
+          config.certs.save(certs)
+          config.certs.show(certs)
+        })
+    } else {
+      config.certs.show(config.certs.certified)
+    }
+  })
+
+/**
+* Sets up the config file with token, certifications and feedbacks. Also
+* notifies the user of any submissions that are currently assigned.
+*/
+cli.command('init <token>')
   .description('set up your review environment')
   .action(token => {
-    config.token = token
-    fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
-    config.tokenAge = moment().dayOfYear() + 30
-    config.certified = []
-    config.feedbacks = []
-    apiCall('certifications').then(res => {
-      res.body.filter(elem => {
-        if (elem.status === 'certified') {
-          config.certified.push({
-            name: elem.project.name,
-            id: elem.project_id.toString()
+    // Save the token
+    let tokenAge = moment().dayOfYear() + 30
+    config.auth.save(token, tokenAge)
+
+    // Set the authorization header for the API request
+    opts.headers.Authorization = token
+    apiCall(opts, 'certifications')
+      .then(res => {
+        let certs = res.body
+          .filter(cert => cert.status === 'certified')
+          .map(cert => {
+            return {
+              name: cert.project.name,
+              id: cert.project_id.toString()
+            }
           })
-        }
+        config.certs.save(certs)
+        return apiCall(opts, 'assigned')
       })
-      return apiCall('feedbacks')
-    }).then(res => {
-      processFeedbacks(res)
-      fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
-      return apiCall('assigned')
-    }).then(res => {
-      res.body.forEach(sub => {
-        notifier.notify({
-          title: 'Currently Assigned:',
-          message: `${sub.project.name}, ID: ${sub.id}`,
-          open: `https://review.udacity.com/#!/submissions/${sub.id}`,
-          icon: path.join(__dirname, 'clipboard.svg'),
-          sound: 'Ping'
+      .then(res => {
+        res.body.forEach(sub => {
+          notifier.notify({
+            title: 'Currently Assigned:',
+            message: `${sub.project.name}, ID: ${sub.id}`,
+            open: `https://review.udacity.com/#!/submissions/${sub.id}`,
+            icon: path.join(__dirname, 'clipboard.svg'),
+            sound: 'Ping'
+          })
         })
+        process.exit(0)
       })
-      process.exit(0)
-    })
   })
 
 /**
@@ -97,7 +131,7 @@ cli.command('assign <projectId> [moreIds...]')
       // Check for new feedbacks every hour
       if (options.feedbacks && tick % 3600 === 0) {
         setPrompt('checking feedbacks')
-        apiCall('feedbacks')
+        apiCall(opts, 'feedbacks')
           .then(res => {
             processFeedbacks(res)
           })
@@ -105,7 +139,7 @@ cli.command('assign <projectId> [moreIds...]')
       // Check how many submissions have been assigned at a given interval.
       if (tick % reqAssignedInterval === 0) {
         setPrompt('checking assigned')
-        apiCall('assigned')
+        apiCall(opts, 'assigned')
           .then(res => {
             assigned = res.body.length
           })
@@ -119,7 +153,8 @@ cli.command('assign <projectId> [moreIds...]')
           setPrompt(`Requesting assignment for project ${id}`)
           errorMsg = ''
           callsTotal++
-          apiCall('assign', 'POST', id)
+          opts.method = 'POST'
+          apiCall(opts, 'assign', id)
             .then(res => {
               if (res.statusCode === 201) {
                 assigned++
@@ -150,8 +185,8 @@ cli.command('assign <projectId> [moreIds...]')
     function setPrompt (msg) {
       readline.cursorTo(process.stdout, 0, 0)
       readline.clearScreenDown(process.stdout)
-      if (config.tokenAge - moment().dayOfYear() < 5) {
-        rl.write(`Token expires ${moment().dayOfYear(config.tokenAge).fromNow()}\n`.red)
+      if (config.auth.tokenAge - moment().dayOfYear() < 5) {
+        rl.write(`Token expires ${moment().dayOfYear(config.auth.tokenAge).fromNow()}\n`.red)
       }
       rl.write(`Uptime: ${startTime.fromNow(true).white}\n`)
       rl.write(`Current task: ${msg.white}\n`)
@@ -166,58 +201,12 @@ cli.command('assign <projectId> [moreIds...]')
     * test against the set of input ids.
     */
     function validateInputIds (ids) {
-      const certifiedIds = new Set(config.certified.map(p => p.id))
+      const certifiedIds = new Set(config.certs.certified.map(p => p.id))
       const validIds = new Set([...ids].filter(id => certifiedIds.has(id)))
       if (ids.size !== validIds.size) {
         const difference = new Set([...ids].filter(id => !validIds.has(id)))
         throw new Error(`Illegal Action: Not certified for project(s) ${[...difference].join(', ')}`)
       }
-    }
-  })
-
-/**
-* Accepts a token and saves it to the config file.
-*/
-cli.command('token <token>')
-  .description('set the token')
-  .action(token => {
-    config.token = token
-    config.tokenAge = moment().dayOfYear() + 30
-    fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
-    process.exit(0)
-  })
-
-/**
-* Logs the users certifications to the console.
-* Options: --update, updates the certifications and logs them to the console.
-*/
-cli.command('certs')
-  .option('-u, --update', 'update certificatons')
-  .description('get project certifications')
-  .action(options => {
-    if (options.update || !config.certified) {
-      config.certified = []
-      apiCall('certifications')
-        .then(res => {
-          res.body.filter(elem => {
-            if (elem.status === 'certified') {
-              config.certified.push({
-                name: elem.project.name,
-                id: elem.project_id.toString()
-              })
-            }
-          })
-          fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
-          showCerts()
-        })
-    } else {
-      showCerts()
-    }
-    function showCerts () {
-      config.certified.forEach(elem => {
-        rl.write(`Project Name: ${elem.name.white}, Project ID: ${elem.id.white}\n`)
-      })
-      process.exit(0)
     }
   })
 
@@ -229,7 +218,7 @@ cli.command('certs')
 cli.command('assigned')
   .description('get the submissions that are assigned to you')
   .action(() => {
-    apiCall('assigned')
+    apiCall(opts, 'assigned')
       .then(res => {
         if (res.body.length) {
           res.body.forEach(sub => {
@@ -254,7 +243,7 @@ cli.command('assigned')
 cli.command('feedbacks')
   .description('save recent feedbacks from the API')
   .action(() => {
-    apiCall('feedbacks')
+    apiCall(opts, 'feedbacks')
       .then(res => {
         processFeedbacks(res)
         process.exit(0)
