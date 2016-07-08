@@ -15,7 +15,7 @@ let certs = {
     fs.writeFileSync(path.resolve('api/certs.json'), JSON.stringify(certs), null, 2)
     console.log('Certifications have been saved.')
   },
-  show (certs) {
+  show (certs = this.certified) {
     certs.forEach(elem => {
       console.log(`Project Name: ${elem.name}, Project ID: ${elem.id}`)
     })

@@ -18,6 +18,8 @@ A CLI for configuring and running API calls against the Udacity Review API.
 $ npm install rqcli -g
 ```
 
+_Note: requires a node version >= 6 and an npm version >= 3._
+
 # Setup
 
 ##### LEGEND

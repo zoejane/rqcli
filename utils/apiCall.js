@@ -24,10 +24,10 @@ function url (task, id) {
 
 /**
 * @desc apiCall Calls an endpoint.
-* @param {string} task The task to be requested
-* @param {string} method The method to be used
-* @param {string} id The id of the project or the submission
-* @return Promise with the response
+* @param {string} options The options object.
+* @param {string} task The task to be requested.
+* @param {string} id The id of the project or the submission.
+* @return Promise with the response.
 */
 module.exports = (options, task, id = '') => {
   options.url = url(task, id)

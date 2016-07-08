@@ -40,7 +40,7 @@ cli.command('certs')
   .option('-u, --update', 'update certificatons')
   .description('get project certifications')
   .action(options => {
-    if (options.update || !config.certs.certified) {
+    if (getCerts()) {
       apiCall(opts, 'certifications')
         .then(res => {
           let certs = res.body
@@ -56,6 +56,9 @@ cli.command('certs')
         })
     } else {
       config.certs.show(config.certs.certified)
+    }
+    function getCerts () {
+      return options.update || !config.certs.certified
     }
   })
 
@@ -107,8 +110,8 @@ cli.command('assign <projectId> [moreIds...]')
   .description('poll the review queue for submissions')
   .option('-f, --feedbacks', 'periodically check for new feedbacks')
   .action((projectId, moreIds, options) => {
+    const REQ_ASSIGNED_INTERVAL = 60
     const startTime = moment()
-    const reqAssignedInterval = 60
     let assigned = 0
     let callsTotal = 0
     let tick = 0
@@ -129,7 +132,7 @@ cli.command('assign <projectId> [moreIds...]')
     */
     function requestNewAssignment () {
       // Check for new feedbacks every hour
-      if (options.feedbacks && tick % 3600 === 0) {
+      if (options.feedbacks && checkInterval(3600)) {
         setPrompt('checking feedbacks')
         apiCall(opts, 'feedbacks')
           .then(res => {
@@ -137,7 +140,7 @@ cli.command('assign <projectId> [moreIds...]')
           })
       }
       // Check how many submissions have been assigned at a given interval.
-      if (tick % reqAssignedInterval === 0) {
+      if (checkInterval(REQ_ASSIGNED_INTERVAL)) {
         setPrompt('checking assigned')
         apiCall(opts, 'assigned')
           .then(res => {
@@ -147,7 +150,7 @@ cli.command('assign <projectId> [moreIds...]')
         // If the max number of submissions is assigned we wait the interval.
         // Otherwise we request an assignment from the API.
         if (assigned === 2) {
-          setPrompt(`Max submissions assigned. Checking again in ${reqAssignedInterval - tick % reqAssignedInterval} seconds.`)
+          setPrompt(`Max submissions assigned. Checking again in ${REQ_ASSIGNED_INTERVAL - tick % REQ_ASSIGNED_INTERVAL} seconds.`)
         } else {
           let id = projectQueue[callsTotal % projectQueue.length]
           setPrompt(`Requesting assignment for project ${id}`)
@@ -177,6 +180,10 @@ cli.command('assign <projectId> [moreIds...]')
         tick++
         requestNewAssignment()
       }, 1000)
+    }
+
+    function checkInterval (seconds) {
+      return tick % seconds === 0
     }
 
     /**
