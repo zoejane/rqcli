@@ -19,7 +19,6 @@ let certs = {
     certs.forEach(elem => {
       console.log(`Project Name: ${elem.name}, Project ID: ${elem.id}`)
     })
-    process.exit(0)
   }
 }
 

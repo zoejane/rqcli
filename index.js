@@ -8,12 +8,13 @@ const cli = require('commander')
 const notifier = require('node-notifier')
 const pkg = require('./package')
 const apiCall = require('./utils').apiCall
+const cmd = require('./commands')
 let config = require('./config')
 
 const readline = require('readline')
 const rl = readline.createInterface(process.stdin, process.stdout)
 
-let opts = config.options(config.auth.token)
+let opts = config.reqOptions(config.auth.token)
 
 // Instantiate the CLI
 cli.name('rqcli')
@@ -40,26 +41,7 @@ cli.command('certs')
   .option('-u, --update', 'update certificatons')
   .description('get project certifications')
   .action(options => {
-    if (getCerts()) {
-      apiCall(opts, 'certifications')
-        .then(res => {
-          let certs = res.body
-            .filter(cert => cert.status === 'certified')
-            .map(cert => {
-              return {
-                name: cert.project.name,
-                id: cert.project_id.toString()
-              }
-            })
-          config.certs.save(certs)
-          config.certs.show(certs)
-        })
-    } else {
-      config.certs.show(config.certs.certified)
-    }
-    function getCerts () {
-      return options.update || !config.certs.certified
-    }
+    cmd.certs(config, options)
   })
 
 /**

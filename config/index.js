@@ -1,5 +1,5 @@
 module.exports = {
-  options: require('./options'),
+  reqOptions: require('./reqOptions'),
   certs: require('./certs'),
   auth: require('./auth')
 }
