@@ -1,5 +1,5 @@
 # CLI for Udacity Review API
-##### API location: https://review.udacity.com/api-doc/index.html
+##### API: https://review.udacity.com/api-doc/index.html
 
 # Description
 A CLI for configuring and running API calls against the Udacity Review API.
@@ -20,7 +20,7 @@ $ npm install rqcli -g
 
 _Note: requires a node version >= 6 and an npm version >= 3._
 
-# Setup
+# :clipboard: Setup
 
 ##### LEGEND
 - Arguments inside `< >` are required.
@@ -28,17 +28,23 @@ _Note: requires a node version >= 6 and an npm version >= 3._
 - Arguments that start with `--` are options.
 - Arguments that start with `-` are shortcuts for an option.
 
-Start by running `rqcli token <yourToken>`. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`). This will create the `api` folder where your token and certifications are stored.
+1. Navigate to the top level of your reviews folders. If you don't have your resources collected in one top-level folder, I suggest you take this opportunity to make that happen :smile:.
+1. Get the token from the API.
+    - Navigate to the [Reviews Dashboard](https://review.udacity.com/#!/submissions/dashboard).
+    - Click on API Access:
+    - ![API Access](ss_api_access.png)
+    - Copy the token.
+1. Run `rqcli token <yourToken>`. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`). This will create the `api` folder where your token and certifications are stored.
+1. Then run `rqcli certs` which will request your certifications from the API and save them for later use.
+1. You can do manythings from here, but the most common task will be to start requesting reviews from the review queue. You do this by using the `assign` command. The `assigned` command lets you know if any submissions are currently assigned to you, and the `feebacks` retrieves feedbacks from the last 30 days and checks if there are any unread ones.
 
-Then run `rqcli certs` which will request your certifications from the API and save them for later use.
+You can read all about the commands in the following section.
 
-Now you are ready to run any of `assign`, `assigned`, and `feebacks`.
-
-# CLI commands
+# :nut_and_bolt: CLI commands
 
 #### `token`
 - Command: `rqcli token <token>`
-- Description: _Stores an API Auth token and the day-of-year to be able to calculate the tokens age_
+- Description: _Stores an API Auth token and the day-of-year to be able to calculate the tokens age._
 - Arguments: `<token>`, your token which you can copy from your dashboard > API Access. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`).
 
 #### `certs`
@@ -61,11 +67,11 @@ Now you are ready to run any of `assign`, `assigned`, and `feebacks`.
 - Command: `rqcli feedbacks`
 - Description: _Checks for unread feedbacks_
 
-# Project Styleguide
+# :black_nib: Project Styleguide
 
 [![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 
-# Contribution Guidelines
+# :+1: Contribution Guidelines
 
 ##### Steps
 
