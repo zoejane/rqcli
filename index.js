@@ -42,6 +42,10 @@ cli.command('certs')
   .description('get project certifications')
   .action(options => {
     cmd.certs(config, options)
+      .then(certs => {
+        config.certs.show(certs)
+        process.exit(0)
+      })
   })
 
 /**

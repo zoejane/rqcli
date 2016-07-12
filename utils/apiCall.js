@@ -22,6 +22,14 @@ function url (task, id) {
   }[task]
 }
 
+let options = {
+  method: 'GET',
+  headers: {
+    Authorization: ''
+  },
+  json: true
+}
+
 /**
 * @desc apiCall Calls an endpoint.
 * @param {string} options The options object.

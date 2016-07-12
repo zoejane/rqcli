@@ -71,6 +71,8 @@ You can read all about the commands in the following section.
 
 [![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 
+[Why no simecolons?](https://www.youtube.com/watch?v=Qlr-FGbhKaI&index=11&list=PL0zVEGEvSaeH21VDycWYNWU7VKUA-xLzg)
+
 # :+1: Contribution Guidelines
 
 ##### Steps
