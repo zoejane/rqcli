@@ -1,11 +1,12 @@
+#!/usr/bin/env node
+
 const apiCall = require('../utils').apiCall
 
-module.exports = ({certs, reqOptions, auth: {token}}, options) => {
+module.exports = ({certs, auth: {token}}, options) => {
   const update = options.update || !certs.certified
   return new Promise((resolve, reject) => {
     if (update) {
-      const opts = reqOptions(token)
-      apiCall(opts, 'certifications')
+      apiCall(token, 'certifications')
         .then(res => {
           let updatedCerts = res.body
             .filter(cert => cert.status === 'certified')

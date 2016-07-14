@@ -27,10 +27,11 @@ cli.version(pkg.version)
 cli.command('token <token>')
   .description('set the token')
   .action(token => {
-    let tokenAge = moment().dayOfYear() + 30
-    config.auth.save(token, tokenAge)
-    console.log(config)
-    process.exit(0)
+    cmd.token(config, token)
+    .then(newToken => {
+      console.log('Token saved.')
+      process.exit(0)
+    })
   })
 
 /**
@@ -49,43 +50,59 @@ cli.command('certs')
   })
 
 /**
-* Sets up the config file with token, certifications and feedbacks. Also
-* notifies the user of any submissions that are currently assigned.
+* Gets information on currently assigned submissions, and then prints out that
+* information to the console.
+*/
+cli.command('assigned')
+  .description('get the submissions that are assigned to you')
+  .action(() => {
+    cmd.assigned(config, options)
+    .then(submissions => {
+      console.log(`You currently have ${submissions.length} submissions assigned.`)
+      process.exit(0)
+    })
+  })
+
+/**
+* Gets any unread feedbacks from the last 30 days.
+*/
+cli.command('feedbacks')
+  .description('save recent feedbacks from the API')
+  .option('-n, --notify', 'Get desktop notifications of unread feedbacks.')
+  .action(options => {
+    cmd.feedbacks(config, options)
+    .then(unread => {
+      console.log(`You have ${unread.length} unread feedbacks.`)
+      process.exit(0)
+    })
+  })
+
+/**
+* Sets up the config file with token and certifications. Also
+* notifies the user of any submissions that are currently assigned as
+* well as any unread feedbacks from the past 30 days.
 */
 cli.command('init <token>')
   .description('set up your review environment')
-  .action(token => {
-    // Save the token
-    let tokenAge = moment().dayOfYear() + 30
-    config.auth.save(token, tokenAge)
-
-    // Set the authorization header for the API request
-    opts.headers.Authorization = token
-    apiCall(opts, 'certifications')
-      .then(res => {
-        let certs = res.body
-          .filter(cert => cert.status === 'certified')
-          .map(cert => {
-            return {
-              name: cert.project.name,
-              id: cert.project_id.toString()
-            }
-          })
-        config.certs.save(certs)
-        return apiCall(opts, 'assigned')
-      })
-      .then(res => {
-        res.body.forEach(sub => {
-          notifier.notify({
-            title: 'Currently Assigned:',
-            message: `${sub.project.name}, ID: ${sub.id}`,
-            open: `https://review.udacity.com/#!/submissions/${sub.id}`,
-            icon: path.join(__dirname, 'clipboard.svg'),
-            sound: 'Ping'
-          })
-        })
-        process.exit(0)
-      })
+  .option('-n, --notify', 'Get desktop notifications of unread feedbacks.')
+  .action((token, options) => {
+    cmd.token(config, token)
+    .then(newToken => {
+      config.auth.token = newToken
+      return cmd.certs(config, true)
+    })
+    .then(certs => {
+      config.certs.show(certs)
+      return cmd.assigned(config)
+    })
+    .then(submissions => {
+      console.log(`You currently have ${submissions.length} submissions assigned.`)
+      return cmd.feedbacks(config, options)
+    })
+    .then(unread => {
+      console.log(`You have ${unread.length} unread feedbacks.`)
+      process.exit(0)
+    })
   })
 
 /**
@@ -203,84 +220,18 @@ cli.command('assign <projectId> [moreIds...]')
     }
   })
 
-/**
-* Sends a desktop notifications to the user with the name of the projects
-* that have been assigned and the id. It opens the review page for the
-* submission if you click on the notification.
-*/
-cli.command('assigned')
-  .description('get the submissions that are assigned to you')
-  .action(() => {
-    apiCall(opts, 'assigned')
-      .then(res => {
-        if (res.body.length) {
-          res.body.forEach(sub => {
-            notifier.notify({
-              title: 'Currently Assigned:',
-              message: `${sub.project.name}, ID: ${sub.id}`,
-              open: `https://review.udacity.com/#!/submissions/${sub.id}`,
-              icon: path.join(__dirname, 'clipboard.svg'),
-              sound: 'Ping'
-            })
-          })
-        } else {
-          rl.write('No reviews are assigned at this time.\n'.yellow)
-        }
-        process.exit(0)
-      })
-  })
-
-/**
-* Gets the feedbacks for the last 30 days. All new feedbacks are saved.
-*/
-cli.command('feedbacks')
-  .description('save recent feedbacks from the API')
-  .action(() => {
-    apiCall(opts, 'feedbacks')
-      .then(res => {
-        processFeedbacks(res)
-        process.exit(0)
-      })
-  })
-
+// Help if command doesn't exist:
 cli.arguments('<cmd>')
   .action((cmd) => {
-    console.log(
-        `\n ${`[ERROR] - Invalid command: ${cmd}`.red}
-        \n Run "rqcli --help" for a list of available commands.\n`
-      );
+    console.log(`[ERROR] - Invalid command: ${cmd}\n`);
+    cli.parse([process.argv[0], process.argv[1], '-h']);
     process.exit(0);
   });
 
 cli.parse(process.argv)
 
+// Help if no command was input:
 if (!cli.args.length) {
   cli.parse([process.argv[0], process.argv[1], '-h']);
   process.exit(0);
-}
-
-/**
-* Saves every new feedback and notifies the user if it's unread.
-*/
-function processFeedbacks (res) {
-  const savedIds = new Set(config.feedbacks.map(fb => fb.id))
-  res.body
-    // Find all the new feedbacks.
-    .filter(fb => !savedIds.has(fb.id))
-    .reverse()
-    .forEach(fb => {
-      // Notify the user if the feedback is unread.
-      if (fb.read_at === null) {
-        notifier.notify({
-          title: `New ${fb.rating}-star Feedback!`,
-          message: `Project: ${fb.project.name}`,
-          open: `https://review.udacity.com/#!/submissions/${fb.submission_id}`,
-          icon: path.join(__dirname, 'clipboard.png'),
-          sound: 'Pop'
-        })
-      }
-      config.feedbacks.unshift(fb)
-    })
-  // Save any new feedbacks.
-  fs.writeFileSync('rqConfig.json', JSON.stringify(config, null, 2))
 }
