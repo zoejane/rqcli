@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 const apiCall = require('../utils').apiCall
+const path = require('path')
 const notifier = require('node-notifier')
-
 
 function desktopNotification (unread) {
   unread.forEach(fb => {
@@ -30,4 +30,4 @@ module.exports = (({auth: {token}}, options) => {
       resolve(unread)
     })
   })
-}
+})

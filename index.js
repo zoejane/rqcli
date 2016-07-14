@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
-const fs = require('fs')
 const path = require('path')
-const colors = require('colors')
 const moment = require('moment')
 const cli = require('commander')
 const notifier = require('node-notifier')
@@ -28,8 +26,7 @@ cli.command('token <token>')
   .description('set the token')
   .action(token => {
     cmd.token(config, token)
-    .then(newToken => {
-      console.log('Token saved.')
+    .then(() => {
       process.exit(0)
     })
   })
@@ -43,8 +40,7 @@ cli.command('certs')
   .description('get project certifications')
   .action(options => {
     cmd.certs(config, options)
-      .then(certs => {
-        config.certs.show(certs)
+      .then(() => {
         process.exit(0)
       })
   })
@@ -94,8 +90,7 @@ cli.command('init <token>')
       config.auth.token = newToken
       return cmd.certs(config, options)
     })
-    .then(certs => {
-      config.certs.show(certs)
+    .then(() => {
       return cmd.assigned(config, options)
     })
     .then(submissions => {
@@ -226,15 +221,15 @@ cli.command('assign <projectId> [moreIds...]')
 // Help if command doesn't exist:
 cli.arguments('<cmd>')
   .action((cmd) => {
-    console.log(`[ERROR] - Invalid command: ${cmd}\n`);
-    cli.parse([process.argv[0], process.argv[1], '-h']);
-    process.exit(0);
-  });
+    console.log(`[ERROR] - Invalid command: ${cmd}\n`)
+    cli.parse([process.argv[0], process.argv[1], '-h'])
+    process.exit(0)
+  })
 
 cli.parse(process.argv)
 
 // Help if no command was input:
 if (!cli.args.length) {
-  cli.parse([process.argv[0], process.argv[1], '-h']);
-  process.exit(0);
+  cli.parse([process.argv[0], process.argv[1], '-h'])
+  process.exit(0)
 }

@@ -17,10 +17,12 @@ module.exports = ({certs, auth: {token}}, options) => {
               }
             })
           certs.save(updatedCerts)
-          resolve(updatedCerts)
+          certs.show(updatedCerts)
+          resolve()
         })
     } else {
-      resolve(certs.certified)
+      certs.show(certs.certified)
+      resolve()
     }
   })
 }

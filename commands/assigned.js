@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 
 const apiCall = require('../utils').apiCall
+const path = require('path')
 const notifier = require('node-notifier')
 
 function desktopNotification (assigned) {
-  assigned.forEach(fb => {
+  assigned.forEach(sub => {
     notifier.notify({
       title: 'New Review Assigned!',
-      message: `${projectName}, ID: ${id}`,
-      open: `https://review.udacity.com/#!/submissions/${id}`,
+      message: `${sub.projectName}, ID: ${sub.id}`,
+      open: `https://review.udacity.com/#!/submissions/${sub.id}`,
       icon: path.join(__dirname, 'clipboard.svg'),
       sound: 'Ping'
     })

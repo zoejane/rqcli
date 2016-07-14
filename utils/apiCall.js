@@ -18,7 +18,7 @@ function api (task, id) {
     'stats': [`${base}/me/student_feedbacks_stats/`, 'GET'],
     'completed': [`${base}/me/submissions/completed/`, 'GET'],
     'assign': [`${base}/projects/${id}/submissions/assign`, 'POST'],
-    'unassign': [`${base}/submissions/${id}/unassign`, 'PUT'],
+    'unassign': [`${base}/submissions/${id}/unassign`, 'PUT']
   }[task]
 }
 
