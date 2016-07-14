@@ -55,7 +55,8 @@ cli.command('certs')
 */
 cli.command('assigned')
   .description('get the submissions that are assigned to you')
-  .action(() => {
+  .option('-n, --notify', 'Get desktop notifications of assigned reviews.')
+  .action(options => {
     cmd.assigned(config, options)
     .then(submissions => {
       console.log(`You currently have ${submissions.length} submissions assigned.`)
@@ -84,16 +85,18 @@ cli.command('feedbacks')
 */
 cli.command('init <token>')
   .description('set up your review environment')
-  .option('-n, --notify', 'Get desktop notifications of unread feedbacks.')
+  .option('-n, --notify', 'Get desktop notifications of reviews status.')
   .action((token, options) => {
+    // Sets the certifications to always update when the init command is run.
+    options.update = true
     cmd.token(config, token)
     .then(newToken => {
       config.auth.token = newToken
-      return cmd.certs(config, true)
+      return cmd.certs(config, options)
     })
     .then(certs => {
       config.certs.show(certs)
-      return cmd.assigned(config)
+      return cmd.assigned(config, options)
     })
     .then(submissions => {
       console.log(`You currently have ${submissions.length} submissions assigned.`)
