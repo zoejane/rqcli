@@ -20,7 +20,7 @@ function desktopNotification (unread) {
 * Gets the feedbacks for the last 30 days. All new feedbacks are saved.
 */
 module.exports = (({auth: {token}}, options) => {
-  return new Promise ((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     apiCall(token, 'feedbacks')
     .then(res => {
       let unread = res.body.filter(fb => fb.read_at === null)

@@ -1,5 +1,5 @@
 # CLI for Udacity Review API
-##### API: https://review.udacity.com/api-doc/index.html
+##### API Documentation: https://review.udacity.com/api-doc/index.html
 
 # Description
 A CLI for configuring and running API calls against the Udacity Review API.
@@ -28,6 +28,7 @@ _Note: requires a node version >= 6 and an npm version >= 3._
 - Arguments that start with `--` are options.
 - Arguments that start with `-` are shortcuts for an option.
 
+##### Step-by-step guide
 1. Navigate to the top level of your reviews folders. If you don't have your resources collected in one top-level folder, I suggest you take this opportunity to make that happen :smile:.
 1. Get the token from the API.
     - Navigate to the [Reviews Dashboard](https://review.udacity.com/#!/submissions/dashboard).
@@ -64,11 +65,14 @@ You can read all about the commands in the following section.
 - Options: `-n`, `--notify`, uses desktop notifications to notify the user of updates.
 
 #### `assign`
-- Command: `rqcli assign <projectId> [moreIds] --feedbacks`
+- Command: `rqcli assign <projectId> [moreIds] --feedbacks --notify`
 - Description: _Starts requesting the Udacity Review API queue for assignments of the type specified in the commands arguments._
 - Arguments: `<projectId> [moreIds...]`, space separated list of project ids to request for.
-- Options: `-f`, `--feedbacks`, periodically checks for new feedbacks (default is set to once per hour).
+- Options:
+    - `-f`, `--feedbacks`, periodically checks for new feedbacks (default is set to once per hour).
+    - `-n`, `--notify`, uses desktop notifications to notify the user of updates.
 - Tip: You can use the list of arguments to weigh the requested projects. If for instance, your list looked like this `rqcli assign 144 144 134 4`, the project `144` would take up half of all the calls to the API.
+- Example Usage: `rqcli assign 144 144 144 134 -fn`. This will request assignments for project 144 three times and then 134 one time. It will keep doing that in a loop. It will also use desktop notifications to notify the user of new assignments and any unread feedbacks.
 
 # :black_nib: Project Styleguide
 
