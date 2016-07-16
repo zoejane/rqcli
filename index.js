@@ -74,7 +74,7 @@ cli.command('assign <projectId> [moreIds...]')
   .option('-f, --feedbacks', 'periodically check for new feedbacks')
   .option('-n, --notify', 'Get desktop notifications.')
   .action((projectId, moreIds, options) => {
-    cmd.assign(config, projectId, moreIds, options)
+    cmd.assign(config, [projectId, ...moreIds], options)
   })
 
 /**

@@ -1,6 +1,6 @@
 {
   "name": "rqcli",
-  "version": "2.3.3",
+  "version": "2.3.4",
   "description": "CLI for Udacity Review API",
   "main": "index.js",
   "scripts": {
