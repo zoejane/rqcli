@@ -35,7 +35,7 @@ _Note: requires a node version >= 6 and an npm version >= 3._
     - Click on API Access:
     - ![API Access](ss_api_access.png)
     - Copy the token.
-1. Run `rqcli init <yourToken>`. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`). This will create the `api` folder where your token and certifications are stored.
+1. Run `rqcli setup <yourToken>`. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`). This will create the `api` folder where your token and certifications are stored.
     - The command lets you know if any submissions are currently assigned to you, and also retrieves any unread feedbacks from the last 30 days.
     - You can add the option `--notify` to get desktop notifications of any unread feedbacks and active reviews.
 1. You can do many things from here, but the most common task will be to start requesting reviews from the review queue. You do this by using the `assign` command.
@@ -56,7 +56,7 @@ You can read all about the commands in the following section.
 
 #### `assigned`
 - Command: `rqcli assigned`
-- _Notifies the user of all submissions that are currently assigned to them._
+- Description: _Notifies the user of all submissions that are currently assigned to them._
 - Options: `-n`, `--notify`, uses desktop notifications to notify the user of updates.
 
 #### `feedbacks`
@@ -73,6 +73,12 @@ You can read all about the commands in the following section.
     - `-n`, `--notify`, uses desktop notifications to notify the user of updates.
 - Tip: You can use the list of arguments to weigh the requested projects. If for instance, your list looked like this `rqcli assign 144 144 134 4`, the project `144` would take up half of all the calls to the API.
 - Example Usage: `rqcli assign 144 144 144 134 -fn`. This will request assignments for project 144 three times and then 134 one time. It will keep doing that in a loop. It will also use desktop notifications to notify the user of new assignments and any unread feedbacks.
+
+#### `setup`
+- Command: `rqcli setup <token>`
+- Description: _Sets up a folder, `api`, in the current directory, with all the information needed to start authenticating against the Udacity Reviews API. This command combines the four commands, `token`, `certs`, `assigned` and `feedbacks` into one._
+- Arguments: `<token>`, your token which you can copy from your dashboard > API Access. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`).
+- Options: `-n`, `--notify`, uses desktop notifications to notify the user of updates.
 
 # :black_nib: Project Styleguide
 

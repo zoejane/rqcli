@@ -12,7 +12,6 @@ module.exports = (({auth: {save}}, newToken) => {
   return new Promise((resolve, reject) => {
     let tokenAge = moment().dayOfYear() + 30
     save(newToken, tokenAge)
-    console.log('Token has been saved.')
-    resolve()
+    resolve(newToken)
   })
 })

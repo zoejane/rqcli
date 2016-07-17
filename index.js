@@ -17,7 +17,7 @@ cli.command('token <token>')
   .description('set the token')
   .action(token => {
     cmd.token(config, token)
-    .then(() => {
+    .then(newToken => {
       process.exit(0)
     })
   })
@@ -82,7 +82,7 @@ cli.command('assign <projectId> [moreIds...]')
 * notifies the user of any submissions that are currently assigned as
 * well as any unread feedbacks from the past 30 days.
 */
-cli.command('init <token>')
+cli.command('setup <token>')
   .description('set up your review environment')
   .option('-n, --notify', 'Get desktop notifications of reviews status.')
   .action((token, options) => {
@@ -90,6 +90,7 @@ cli.command('init <token>')
     options.update = true
     cmd.token(config, token)
     .then(newToken => {
+      console.log('Token has been saved.')
       config.auth.token = newToken
       return cmd.certs(config, options)
     })
