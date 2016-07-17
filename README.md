@@ -1,8 +1,8 @@
-# CLI for Udacity Review API
+# CLI for Udacity Reviews API
 ##### API Documentation: https://review.udacity.com/api-doc/index.html
 
 # Description
-A CLI for configuring and running API calls against the Udacity Review API.
+A CLI for configuring and running API calls against the Udacity Reviews API.
 
 # :arrow_double_down: Installation
 
@@ -12,10 +12,10 @@ A CLI for configuring and running API calls against the Udacity Review API.
 
 ### Instructions
 
-`rqcli` is a [Node](https://nodejs.org/) module. So, as long as you have Node.js and NPM installed, installing `rqcli` is as simple as running this in a terminal at the root of your project:
+`rqcli` is a [Node](https://nodejs.org/) module. So, as long as you have Node.js and NPM installed, installing `rqcli` is as simple as running the following command in a terminal:
 
 ```sh
-$ npm install rqcli -g
+$ npm install rqcli --global
 ```
 
 _Note: requires a node version >= 6 and an npm version >= 3._
@@ -28,31 +28,29 @@ _Note: requires a node version >= 6 and an npm version >= 3._
 - Arguments that start with `--` are options.
 - Arguments that start with `-` are shortcuts for an option.
 
-##### Step-by-step guide
-1. Navigate to the top level of your reviews folders. If you don't have your resources collected in one top-level folder, I suggest you take this opportunity to make that happen :smile:.
+##### Step-By-Step Guide
+1. Navigate to the folder you want to use for your work with reviews.
 1. Get the token from the API.
     - Navigate to the [Reviews Dashboard](https://review.udacity.com/#!/submissions/dashboard).
     - Click on API Access:
     - ![API Access](ss_api_access.png)
     - Copy the token.
 1. Run `rqcli setup <yourToken>`. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`). This will create the `api` folder where your token and certifications are stored.
-    - The command lets you know if any submissions are currently assigned to you, and also retrieves any unread feedbacks from the last 30 days.
+    - The command lets you know if any submissions are currently assigned to you, and also if there are any unread feedbacks from the last 30 days.
     - You can add the option `--notify` to get desktop notifications of any unread feedbacks and active reviews.
-1. You can do many things from here, but the most common task will be to start requesting reviews from the review queue. You do this by using the `assign` command.
-
-You can read all about the commands in the following section.
+1. You can do many things from here, but the most common task will be to start requesting reviews from the review queue. Do this by using the `assign` command.
 
 # :nut_and_bolt: CLI commands
 
 #### `token`
 - Command: `rqcli token <token>`
 - Description: _Stores an API Auth token and the day-of-year to be able to calculate the tokens age._
-- Arguments: `<token>`, your token which you can copy from your dashboard > API Access. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`).
+- Arguments: `<token>`, the API authentication token which is available from the reviews dashboard > API Access. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`).
 
 #### `certs`
 - Command: `rqcli certs --update`
-- Description: _Displays all of the project names with ids for which you are certified._
-- Options: `-u`, `--update`, updates your certifications.
+- Description: _Displays all of the project names with ids for which the authenticated user is certified._
+- Options: `-u`, `--update`, updates certifications.
 
 #### `assigned`
 - Command: `rqcli assigned`
@@ -61,7 +59,7 @@ You can read all about the commands in the following section.
 
 #### `feedbacks`
 - Command: `rqcli feedbacks`
-- Description: _Checks for unread feedbacks_
+- Description: _Checks for unread feedbacks from the last 30 days_
 - Options: `-n`, `--notify`, uses desktop notifications to notify the user of updates.
 
 #### `assign`
@@ -92,9 +90,7 @@ You can read all about the commands in the following section.
 
 1. Fork this repository
 2. `git clone` your fork down to your local machine
-3. `cd` into the directory for your fork
-4. run `npm install -g`
-5. Submit a PR for any contributions.
+3. Submit a PR for any contributions.
 
 # License
 
