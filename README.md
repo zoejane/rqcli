@@ -38,7 +38,7 @@ _Note: requires a node version >= 6 and an npm version >= 3._
 1. Run `rqcli setup <yourToken>`. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`). This will create the `api` folder where your token and certifications are stored.
     - The command lets you know if any submissions are currently assigned to you, and also if there are any unread feedbacks from the last 30 days.
     - You can add the option `--notify` to get desktop notifications of any unread feedbacks and active reviews.
-1. You can do many things from here, but the most common task will be to start requesting reviews from the review queue. Do this by using the `assign` command.
+1. The most common task when using this CLI, will be to start requesting assignments from the Udacity Reviews API. Do this by using the `assign` command.
 
 # :nut_and_bolt: CLI commands
 
