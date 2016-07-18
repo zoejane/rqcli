@@ -19,10 +19,10 @@ module.exports = (config, projectQueue, options) => {
   const {auth: {token, tokenAge}} = config
   const startTime = moment()
   const assignedInterval = 60
-  const feedbacksInterval = 3600
+  const feedbacksInterval = 60
 
   let assigned = 0
-  let unreadFeedbacks = 0
+  let unreadFeedbacks = new Set()
   let callsTotal = 0
   let errorMsg = ''
   let tick = 0
@@ -40,9 +40,14 @@ module.exports = (config, projectQueue, options) => {
   function requestNewAssignment () {
     // Check for new feedbacks every hour
     if (options.feedbacks && checkInterval(feedbacksInterval)) {
-      feedbacks(config, options)
+      feedbacks(config)
       .then(unread => {
-        unreadFeedbacks = unread.length
+        unread.forEach(fb => {
+          if (options.notify && !unreadFeedbacks.has(fb.submission_id)) {
+            config.feedbacks.notify(fb)
+          }
+        })
+        unreadFeedbacks = new Set(unread.filter(fb => fb.submission_id))
       })
     }
     // Check how many submissions have been assigned at a given interval.
@@ -99,13 +104,15 @@ module.exports = (config, projectQueue, options) => {
     console.log(`Current task: ${msg}`)
     console.log(`Total server requests: ${callsTotal}`)
     console.log(`Currently assigned: ${assigned}`)
-    if (unreadFeedbacks) {
-      console.log(`You have ${unreadFeedbacks} unread feedbacks.`)
+    console.log(`Updating assigned in: ${countdown(assignedInterval)}`)
+    if (options.feedbacks) {
+      console.log(`You have ${unreadFeedbacks.size} unread feedbacks.`)
+      console.log(`Updating feedbacks in: ${countdown(feedbacksInterval)}`)
     }
     if (errorMsg) {
       console.log(`Server responded with ${errorMsg}`)
     }
-    console.log(`Press ${'ctrl+c'} twice to exit`)
+    console.log(`Press ${'ctrl+c'} to exit`)
   }
 }
 

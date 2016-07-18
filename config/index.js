@@ -1,4 +1,5 @@
 module.exports = {
   certs: require('./certs'),
-  auth: require('./auth')
+  auth: require('./auth'),
+  feedbacks: require('./feedbacks')
 }
