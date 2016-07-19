@@ -20,6 +20,18 @@ $ npm install rqcli --global
 
 _Note: requires a node version >= 6 and an npm version >= 3._
 
+### Notifications
+
+The CLI relies on [node-notifier](https://www.npmjs.com/package/node-notifier) for destop notificaitons and has a simple information-rich interface for the terminal.
+
+Desktop Notifications on a Mac:
+
+![Desktop Notifications](README/ss_desktop_notifications.png)
+
+CLI prompt
+
+![CLI Prompt](README/ss_cli_prompt.png)
+
 # :clipboard: Setup
 
 ##### LEGEND
@@ -33,7 +45,7 @@ _Note: requires a node version >= 6 and an npm version >= 3._
 1. Get the token from the API.
     - Navigate to the [Reviews Dashboard](https://review.udacity.com/#!/submissions/dashboard).
     - Click on API Access:
-    - ![API Access](ss_api_access.png)
+    - ![API Access](README/ss_api_access.png)
     - Copy the token.
 1. Run `rqcli setup <yourToken>`. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`). This will create the `api` folder where your token and certifications are stored.
     - The command lets you know if any submissions are currently assigned to you, and also if there are any unread feedbacks from the last 30 days.
