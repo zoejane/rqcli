@@ -102,7 +102,7 @@ module.exports = (config, projectQueue, options) => {
 
     // Warnings
     if (tokenExpiryWarning()) {
-      console.log(`Token expires ${moment().dayOfYear(tokenAge).fromNow()}`)
+      console.log(chalk.red(`Token expires ${moment().dayOfYear(tokenAge).fromNow()}`))
     }
 
     // Genral info
@@ -126,13 +126,13 @@ module.exports = (config, projectQueue, options) => {
         let duration = moment.duration(countdown(feedbacksInterval), 'seconds')
         fbMsg = `updating ${duration.humanize(true)}`
       }
-      console.log(chalk.blue(`Unread feedbacks: ${chalk.white(unreadFeedbacks.size)} - ${chalk.yellow(fbMsg)}`))
+      console.log(chalk.blue(`-> Unread feedbacks: ${chalk.white(unreadFeedbacks.size)} - ${chalk.yellow(fbMsg)}`))
     }
     // Errors
     if (errorMsg) {
-      console.log(`Server responded with ${errorMsg}`)
+      console.log(chalk.red(`Server responded with ${errorMsg}`))
     }
-    console.log(chalk.green(`Press ${'ctrl+c'} to exit`))
+    console.log(chalk.green(`Press ${chalk.white('ctrl+c')} to exit`))
   }
 }
 
