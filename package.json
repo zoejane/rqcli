@@ -1,7 +1,7 @@
 {
   "name": "rqcli",
   "version": "2.3.13",
-  "description": "CLI for Udacity Review API",
+  "description": "CLI for Udacity Reviews API",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -13,8 +13,7 @@
   "keywords": [
     "cli",
     "udacity",
-    "review",
-    "queue"
+    "reviews"
   ],
   "author": "Mikkel Trolle Larsen",
   "license": "ISC",
