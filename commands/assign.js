@@ -19,7 +19,7 @@ module.exports = (config, projectQueue, options) => {
   const {auth: {token, tokenAge}} = config
   const startTime = moment()
   const assignedInterval = 60
-  const feedbacksInterval = 60
+  const feedbacksInterval = 300
 
   let assigned = 0
   let unreadFeedbacks = new Set()
@@ -27,7 +27,7 @@ module.exports = (config, projectQueue, options) => {
   let errorMsg = ''
   let tick = 0
 
-  const checkInterval = seconds => tick % seconds === 0
+  const checkInterval = interval => tick % interval === 0
   const countdown = interval => interval - tick % interval
   const tokenExpiryWarning = () => tokenAge - moment().dayOfYear() < 5
 
@@ -94,21 +94,40 @@ module.exports = (config, projectQueue, options) => {
   /**
   * Writes the current information to the terminal.
   */
-  function setPrompt (msg) {
+  function setPrompt (taskMsg) {
+    // Clearing the screen
     readline.cursorTo(process.stdout, 0, 0)
     readline.clearScreenDown(process.stdout)
+
+    // Warnings
     if (tokenExpiryWarning()) {
       console.log(`Token expires ${moment().dayOfYear(tokenAge).fromNow()}`)
     }
+
+    // Genral info
     console.log(`Uptime: ${startTime.fromNow(true)}`)
-    console.log(`Current task: ${msg}`)
+    console.log(`Current task: ${taskMsg}`)
     console.log(`Total server requests: ${callsTotal}`)
-    console.log(`Currently assigned: ${assigned}`)
-    console.log(`Updating assigned in: ${countdown(assignedInterval)}`)
-    if (options.feedbacks) {
-      console.log(`You have ${unreadFeedbacks.size} unread feedbacks.`)
-      console.log(`Updating feedbacks in: ${countdown(feedbacksInterval)}`)
+
+    // Assigned
+    if (checkInterval(assignedInterval)) {
+      console.log(`Currently assigned: ${assigned} - checking...`)
+    } else {
+      let msg = `updating in ${countdown(assignedInterval)} seconds.`
+      console.log(`Currently assigned: ${assigned} - ${msg}.`)
     }
+
+    // Feedbacks
+    if (options.feedbacks) {
+      if (checkInterval(feedbacksInterval)) {
+        console.log(`Unread feedbacks: ${unreadFeedbacks.size} - checking...`)
+      } else {
+        let msg = `updating in ${moment().seconds(countdown(feedbacksInterval)).fromNow(true)}`
+        console.log(`Unread feedbacks: ${unreadFeedbacks.size} - ${msg}.`)
+      }
+    }
+
+    // Errors
     if (errorMsg) {
       console.log(`Server responded with ${errorMsg}`)
     }
