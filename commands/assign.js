@@ -112,21 +112,21 @@ module.exports = (config, projectQueue, options) => {
     console.log(chalk.green(`Total requests for assignments: ${chalk.white(callsTotal)}`))
 
     // Assigned
-    let assignedMsg = 'checking...'
+    let assignedMsg = ' - checking...'
     if (!checkInterval(assignedInterval)) {
-      assignedMsg = `updating in ${countdown(assignedInterval)} seconds`
+      assignedMsg = ` - updating in ${countdown(assignedInterval)} seconds`
     }
     console.log(chalk.blue(
-      `-> Currently assigned: ${chalk.white(assigned)} - ${chalk.yellow(assignedMsg)}`))
+      `-> Currently assigned: ${chalk.white(assigned)}${chalk.yellow.dim(assignedMsg)}`))
 
     // Feedbacks
     if (options.feedbacks) {
-      let fbMsg = 'checking...'
+      let fbMsg = ' - checking...'
       if (!checkInterval(feedbacksInterval)) {
         let duration = moment.duration(countdown(feedbacksInterval), 'seconds')
-        fbMsg = `updating ${duration.humanize(true)}`
+        fbMsg = ` - updating ${duration.humanize(true)}`
       }
-      console.log(chalk.blue(`-> Unread feedbacks: ${chalk.white(unreadFeedbacks.size)} - ${chalk.yellow(fbMsg)}`))
+      console.log(chalk.blue(`-> Unread feedbacks: ${chalk.white(unreadFeedbacks.size)}${chalk.yellow.dim(fbMsg)}`))
     }
     // Errors
     if (errorMsg) {
