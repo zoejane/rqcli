@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 const path = require('path')
-const moment = require('moment')
-const apiCall = require('../utils').apiCall
-const notifier = require('node-notifier')
 const readline = require('readline')
+const notifier = require('node-notifier')
+const moment = require('moment')
+const chalk = require('chalk')
+const apiCall = require('../utils').apiCall
 const feedbacks = require('./feedbacks')
 
 module.exports = (config, projectQueue, options) => {
@@ -105,33 +106,33 @@ module.exports = (config, projectQueue, options) => {
     }
 
     // Genral info
-    console.log(`Uptime: ${startTime.fromNow(true)}`)
-    console.log(`Current task: ${taskMsg}`)
-    console.log(`Total server requests: ${callsTotal}`)
+    let uptime = startTime.fromNow(true)
+    console.log(chalk.green(`Uptime: ${chalk.white(uptime)}`))
+    console.log(chalk.green(`Current task: ${chalk.white(taskMsg)}`))
+    console.log(chalk.green(`Total requests for assignments: ${chalk.white(callsTotal)}`))
 
     // Assigned
-    if (checkInterval(assignedInterval)) {
-      console.log(`Currently assigned: ${assigned} - checking...`)
-    } else {
-      let msg = `updating in ${countdown(assignedInterval)} seconds.`
-      console.log(`Currently assigned: ${assigned} - ${msg}.`)
+    let assignedMsg = 'checking...'
+    if (!checkInterval(assignedInterval)) {
+      assignedMsg = `updating in ${countdown(assignedInterval)} seconds`
     }
+    console.log(chalk.blue(
+      `-> Currently assigned: ${chalk.white(assigned)} - ${chalk.yellow(assignedMsg)}`))
 
     // Feedbacks
     if (options.feedbacks) {
-      if (checkInterval(feedbacksInterval)) {
-        console.log(`Unread feedbacks: ${unreadFeedbacks.size} - checking...`)
-      } else {
-        let msg = `updating in ${moment().seconds(countdown(feedbacksInterval)).fromNow(true)}`
-        console.log(`Unread feedbacks: ${unreadFeedbacks.size} - ${msg}.`)
+      let fbMsg = 'checking...'
+      if (!checkInterval(feedbacksInterval)) {
+        let duration = moment.duration(countdown(feedbacksInterval), 'seconds')
+        fbMsg = `updating ${duration.humanize(true)}`
       }
+      console.log(chalk.blue(`Unread feedbacks: ${chalk.white(unreadFeedbacks.size)} - ${chalk.yellow(fbMsg)}`))
     }
-
     // Errors
     if (errorMsg) {
       console.log(`Server responded with ${errorMsg}`)
     }
-    console.log(`Press ${'ctrl+c'} to exit`)
+    console.log(chalk.green(`Press ${'ctrl+c'} to exit`))
   }
 }
 
