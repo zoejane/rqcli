@@ -78,6 +78,15 @@ cli.command('assign <projectId> [moreIds...]')
     cmd.assign(config, [projectId, ...moreIds], options)
   })
 
+cli.command('review')
+  .description('Start reviewing a project.')
+  .action(() => {
+    cmd.review(config)
+    .then(() => {
+      process.exit(0)
+    })
+  })
+
 /**
 * Sets up the config file with token and certifications. Also
 * notifies the user of any submissions that are currently assigned as

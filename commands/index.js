@@ -3,5 +3,6 @@ module.exports = {
   assigned: require('./assigned'),
   assign: require('./assign'),
   token: require('./token'),
-  feedbacks: require('./feedbacks')
+  feedbacks: require('./feedbacks'),
+  review: require('./review')
 }
