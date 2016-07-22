@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const path = require('path')
 const readline = require('readline')
 const notifier = require('node-notifier')
 const moment = require('moment')
@@ -17,8 +16,13 @@ module.exports = (config, projectQueue, options) => {
       `Illegal Action: Not certified for project(s) ${[...invalidIds].join(', ')}`)
   }
 
-  const {auth: {token, tokenAge}} = config
+  const token = config.auth.token
+  const tokenAge = config.auth.tokenAge
   const startTime = moment()
+
+  // The interval in milliseconds at which requestNewAssignment() is called.
+  const tickRate = 1000
+
   const assignedInterval = 60
   const feedbacksInterval = 300
 
@@ -36,21 +40,24 @@ module.exports = (config, projectQueue, options) => {
   * Checks how many submissions are currently assigned to the user at a
   * constant interval. If it's 2, it waits the length of the interval and
   * checks again. As long as it's less than 2 it requests a new assignment
-  * once every second.
+  * once every tickRate.
   */
   function requestNewAssignment () {
-    // Check for new feedbacks every hour
+    // Check for new feedbacks at a given interval
     if (options.feedbacks && checkInterval(feedbacksInterval)) {
       feedbacks(config)
       .then(unread => {
-        unread.forEach(fb => {
-          if (options.notify && !unreadFeedbacks.has(fb.submission_id)) {
-            config.feedbacks.notify(fb)
-          }
-        })
+        if (options.notify) {
+          unread.forEach(fb => {
+            if (!unreadFeedbacks.has(fb.submissions)) {
+              config.feedbacks.notify(fb)
+            }
+          })
+        }
         unreadFeedbacks = new Set(unread.filter(fb => fb.submission_id))
       })
     }
+
     // Check how many submissions have been assigned at a given interval.
     if (checkInterval(assignedInterval)) {
       apiCall(token, 'assigned')
@@ -58,6 +65,7 @@ module.exports = (config, projectQueue, options) => {
         assigned = res.body.length
       })
     }
+
     // If the max number of submissions is assigned we wait the interval.
     // Otherwise we request an assignment from the API.
     if (assigned === 2) {
@@ -65,19 +73,19 @@ module.exports = (config, projectQueue, options) => {
     } else {
       let projectId = projectQueue[callsTotal % projectQueue.length]
       setPrompt(`Requesting assignment for project ${projectId}`)
+
       errorMsg = ''
       callsTotal++
+
       apiCall(token, 'assign', projectId)
       .then(res => {
         if (res.statusCode === 201) {
           assigned++
-          let name = res.body.project.name
-          let id = res.body.id
           notifier.notify({
             title: 'New Review Assigned!',
-            message: `${name}, ID: ${id}`,
-            open: `https://review.udacity.com/#!/submissions/${id}`,
-            icon: path.join(__dirname, 'clipboard.svg'),
+            message: `${moment().format('HH:mm')} - ${res.body.project.name}`,
+            open: `https://review.udacity.com/#!/reviews/${res.body.id}`,
+            icon: 'clipboard.png',
             sound: 'Ping'
           })
         } else if (res.statusCode !== 404) {
@@ -85,10 +93,11 @@ module.exports = (config, projectQueue, options) => {
         }
       })
     }
+
     setTimeout(() => {
       tick++
       requestNewAssignment()
-    }, 1000)
+    }, tickRate)
   }
   requestNewAssignment()
 
