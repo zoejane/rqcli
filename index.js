@@ -73,6 +73,7 @@ cli.command('assign <projectId> [moreIds...]')
   .description('poll the review queue for submissions')
   .option('-f, --feedbacks', 'periodically check for new feedbacks')
   .option('-n, --notify', 'Get desktop notifications.')
+  .option('-a, --assigned-total', 'Show total number of reviews assigned this session.')
   .action((projectId, moreIds, options) => {
     cmd.assign(config, [projectId, ...moreIds], options)
   })
