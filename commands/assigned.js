@@ -21,7 +21,7 @@ function desktopNotification (assigned) {
 * @param: token The users active token.
 * @returns: {Array} assigned A list of assigned submissions.
 */
-module.exports = (({auth: {token}}, options) => {
+module.exports = ({auth: {token}}, options) => {
   return new Promise((resolve, reject) => {
     apiCall(token, 'assigned')
     .then(res => {
@@ -37,4 +37,4 @@ module.exports = (({auth: {token}}, options) => {
       resolve(assigned)
     })
   })
-})
+}

@@ -5,7 +5,7 @@ const apiCall = require('../utils').apiCall
 /**
 * Gets the feedbacks for the last 30 days. All new feedbacks are saved.
 */
-module.exports = ((config, options = {}) => {
+module.exports = (config, options = {}) => {
   return new Promise((resolve, reject) => {
     apiCall(config.auth.token, 'feedbacks')
     .then(res => {
@@ -18,4 +18,4 @@ module.exports = ((config, options = {}) => {
       resolve(unread)
     })
   })
-})
+}
