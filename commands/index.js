@@ -4,5 +4,6 @@ module.exports = {
   assign: require('./assign'),
   token: require('./token'),
   feedbacks: require('./feedbacks'),
-  review: require('./review')
+  review: require('./review'),
+  money: require('./money')
 }

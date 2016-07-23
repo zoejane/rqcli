@@ -87,6 +87,18 @@ cli.command('review')
     })
   })
 
+cli.command('money')
+  .description('Start moneying a project.')
+  .option('-d, --days <days>', 'check reviews from the past <days> days.')
+  .option('-f, --from <date>', 'Check reviews from <date> date.')
+  .option('-t, --to <date>', 'Check reviews up to <date> date.')
+  .action(options => {
+    cmd.money(config, options)
+    .then(() => {
+      process.exit(0)
+    })
+  })
+
 /**
 * Sets up the config file with token and certifications. Also
 * notifies the user of any submissions that are currently assigned as
