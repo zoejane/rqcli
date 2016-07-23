@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const path = require('path')
 const readline = require('readline')
 const moment = require('moment')
 const chalk = require('chalk')
@@ -15,7 +16,7 @@ module.exports = ({auth: {token}}) => {
     .then(res => {
       let assigned = res.body
       let activeReview = 0
-      let chosenAssignment
+      let project
       if (assigned.length === 0) {
         assigned = alt // testing
         // console.log('No reviews are currently assigned to you.')
@@ -32,12 +33,15 @@ module.exports = ({auth: {token}}) => {
         rl.prompt()
 
         rl.on('line', answer => {
-          if (chosenAssignment === undefined) {
-            activeReview = answer === '' ? 0 : parseInt(answer)
-            if (activeReview !== 0 && activeReview !== 1) throw new Error('Invalid answer.')
-            chosenAssignment = assigned[activeReview]
-            console.log(`Project URL: https://review.udacity.com/#!/reviews/${chosenAssignment.id}`)
-            rl.setPrompt(`Starting review. Press any key when you are done.`)
+          if (project === undefined) {
+            console.log(answer)
+            let valid = new Set([0, 1])
+            activeReview = validateInput(answer, 0, valid)
+            project = assigned[activeReview]
+            console.log(chalk.blue(`Project URL: https://review.udacity.com/#!/reviews/${project.id}`))
+            console.log(chalk.blue(`Checking scripts for project ${project.project_id}`))
+            runScript(project)
+            rl.setPrompt(chalk.white(`Starting review. Press any key when you are done.`))
             rl.prompt()
           } else {
             console.log(`Review done at: ${moment().format('HH:mm')}`)
@@ -49,7 +53,40 @@ module.exports = ({auth: {token}}) => {
   })
 }
 
+function validateInput (input, defaultValue, valid) {
+  let answer = input === '' ? defaultValue : input
+  if (typeof valid[0] === 'number') {
+    answer = parseInt(answer)
+  }
+  if (!valid.has(answer)) {
+    throw new Error('Wrong input.')
+  }
+  return answer
+}
+
 function printAssignment (review) {
   const when = moment(review.assigned_at).fromNow()
   return `${review.project.name} (${review.project.id}), assigned ${when}`
+}
+
+function checkForScript (projectId) {
+  let script
+  try {
+    script = require(path.resolve(`${projectId}`))
+  } catch (e) {
+    if (e.code !== 'MODULE_NOT_FOUND') {
+      throw new Error(e)
+    }
+    console.log(e)
+  }
+  return script
+}
+
+function runScript (project) {
+  let script = checkForScript(project.project_id)
+  if (script === undefined) {
+    console.log('No script found')
+  } else {
+    script(project)
+  }
 }
