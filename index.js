@@ -89,12 +89,13 @@ cli.command('review')
 
 cli.command('money')
   .description('Start moneying a project.')
-  .option('-d, --days <days>', 'check reviews from the past <days> days.')
-  .option('-f, --from <date>', 'Check reviews from <date> date.')
-  .option('-t, --to <date>', 'Check reviews up to <date> date.')
+  .option('-m, --month <month>', 'check reviews from the selected <month>.')
   .action(options => {
     cmd.money(config, options)
     .then(() => {
+      process.exit(0)
+    })
+    .catch(() => {
       process.exit(0)
     })
   })
