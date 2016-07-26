@@ -84,6 +84,18 @@ CLI prompt
 - Tip: You can use the list of arguments to weigh the requested projects. If for instance, your list looked like this `rqcli assign 144 144 134 4`, the project `144` would take up half of all the calls to the API.
 - Example Usage: `rqcli assign 144 144 144 134 -fn`. This will request assignments for project 144 three times and then 134 one time. It will keep doing that in a loop. It will also use desktop notifications to notify the user of new assignments and any unread feedbacks.
 
+#### `money`
+- Command: `rqcli money [months] --from --to`
+- Description: _Gets all completed reviews and returns a report on earnings in the period(s) specified by the user._
+- Arguments: `[months]`, space separated list of months to report on.
+- Options:
+    + `-f`, `--from <date>`, date in the format, `YYYY-MM-DDT00:00:00`, from which to calculate earnings. If the `--to` option is not defined, the period use will be from the `--from <date>` date to now.
+    + `-t`, `--to <date>`, date in the format, `YYYY-MM-DDT00:00:00`, to which to calculate earnings. If the `--from` option is not defined, the period will be from the date of the first review to the `--to <date>` date.
+- Example Usage: `rqcli money 3 4 --from 2016-01-01 --to 2016-07-26`. This request will return three earnings reports:
+    + the earnings report for the full month of March of 2016.
+    + the earnings report for the full month of May of 2016.
+    + the earnings report for the year 2016 up to and including July 26th.
+
 #### `setup`
 - Command: `rqcli setup <token>`
 - Description: _Sets up a folder, `api`, in the current directory, with all the information needed to start authenticating against the Udacity Reviews API. This command combines the four commands, `token`, `certs`, `assigned` and `feedbacks` into one._
