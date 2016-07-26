@@ -1,5 +1,15 @@
 #!/usr/bin/env node
 
+/**
+* Will have 2 options:
+*   --from: Date from which to select payment information. If no other option
+*       is chosen, all available payment information from the selected date to
+*       now is presented.
+*   --to: Date to which to select payment information. If no ther option is
+*       provided, all available payment information up to the selected date is
+*       presented.
+*/
+
 const moment = require('moment')
 const chalk = require('chalk')
 const apiCall = require('../utils').apiCall
@@ -8,6 +18,8 @@ let earned = 0
 let reviewsCount = 0
 let projects = {}
 let ungradeable = {}
+let errorMsg = ''
+let selectedIntervals = []
 
 function countProject (review) {
   let id = review.project.id
@@ -19,55 +31,82 @@ function countProject (review) {
   earned += parseInt(review.price)
 }
 
-module.exports = ({auth: {token}}, options) => {
+module.exports = ({auth: {token}}, months, options) => {
+  validate(months, options)
+  getDates(months, options)
+
   return new Promise((resolve, reject) => {
     apiCall(token, 'completed')
     .then(res => {
-      if (!validateOptions(options)) {
-        throw Error('Error caused by invalid options.')
-      }
-      let selected = res.body
-
-      let lastCompletedAt = selected[0].completed_at
-      let monthStart = Date.parse(`2016-${options.month}`)
-      let monthEnd = Date.parse(moment(monthStart).add(1, 'M'))
-
-      selected.forEach(review => {
-        let completed_at = Date.parse(review.completed_at)
-        if (completed_at > monthStart && completed_at < monthEnd) {
-          countProject(review)
-        }
+      selectedIntervals.forEach(interval => {
+        earned = 0
+        reviewsCount = 0
+        projects = {}
+        ungradeable = {}
+        res.body.forEach(review => {
+          let completed_at = Date.parse(review.completed_at)
+          if (completed_at > interval[0] && completed_at < interval[1]) {
+            countProject(review)
+          }
+        })
+        print()
       })
-      print()
       resolve()
     })
   })
+}
+
+function getDates (months, {from, to}) {
+  if (months.length) {
+    months.forEach(month => {
+      let monthStart = getMonthStart(month)
+      console.log(monthStart)
+      let monthEnd = moment(monthStart).add(1, 'M')
+      console.log(monthEnd)
+      selectedIntervals.push([Date.parse(monthStart), Date.parse(monthEnd)])
+      console.log(selectedIntervals)
+    })
+  }
+}
+
+function getMonthStart (month) {
+  let currentYear = moment().year()
+  if (month.length > 2) {
+    return month
+  }
+  if (month.length === 1) {
+    return `${currentYear}-0${month}`
+  }
+  return `${currentYear}-${month}`
+}
+
+function validate (months, {from, to}) {
+  if (months.length) {
+    months.forEach(month => {
+      if (!validateMonth(month)) {
+        throw new Error(errorMsg)
+      }
+    })
+  } else if (from || to) {
+    if (!validateOptions(options)) {
+      throw new Error(errorMsg)
+    }
+  } else {
+    printHelp()
+  }
 }
 
 function print() {
   console.log(chalk.blue(`${earned}, ${reviewsCount}`))
   console.log(chalk.white(`${JSON.stringify(projects)}`))
   console.log(chalk.white(`${JSON.stringify(ungradeable)}`))
-}
-
-function validateOptions ({month}) {
-  if (month) {
-    month = validateMonth(month)
-  }
-  return month
+  console.log('---')
 }
 
 function validateMonth (month) {
-  if (options.month > 12 || options.month < 1) {
-    return false
-  }
   return true
 }
 
-function dateFromMonth(month) {
-  // get current date
-  // get the current month
-  // if current month is less than seleceted month, subtract one year
-  month = month < 10 ? `0${month}` : month
-  return Date.parse()
+function validateOptions ({from, to}) {
+  return true
 }

@@ -87,11 +87,12 @@ cli.command('review')
     })
   })
 
-cli.command('money')
+cli.command('money [months...]')
   .description('Start moneying a project.')
-  .option('-m, --month <month>', 'check reviews from the selected <month>.')
-  .action(options => {
-    cmd.money(config, options)
+  .option('-f, --from <date>', 'check reviews from the selected <date>.')
+  .option('-t, --to <date>', 'check reviews up to the selected <date>.')
+  .action((months, options) => {
+    cmd.money(config, months, options)
     .then(() => {
       process.exit(0)
     })
