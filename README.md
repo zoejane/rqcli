@@ -54,24 +54,10 @@ CLI prompt
 
 # :nut_and_bolt: CLI commands
 
-#### `token`
-- Command: `rqcli token <token>`
-- Description: _Stores an API Auth token and the day-of-year to be able to calculate the tokens age._
-- Arguments: `<token>`, the API authentication token which is available from the reviews dashboard > API Access. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`).
-
-#### `certs`
-- Command: `rqcli certs --update`
-- Description: _Displays all of the project names with ids for which the authenticated user is certified._
-- Options: `-u`, `--update`, updates certifications.
-
-#### `assigned`
-- Command: `rqcli assigned`
-- Description: _Notifies the user of all submissions that are currently assigned to them._
-- Options: `-n`, `--notify`, uses desktop notifications to notify the user of updates.
-
-#### `feedbacks`
-- Command: `rqcli feedbacks`
-- Description: _Checks for unread feedbacks from the last 30 days_
+#### `setup`
+- Command: `rqcli setup <token>`
+- Description: _Sets up a folder, `api`, in the current directory, with all the information needed to start authenticating against the Udacity Reviews API. This command combines the four commands, `token`, `certs`, `assigned` and `feedbacks` into one._
+- Arguments: `<token>`, your token which you can copy from your dashboard > API Access. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`).
 - Options: `-n`, `--notify`, uses desktop notifications to notify the user of updates.
 
 #### `assign`
@@ -95,11 +81,34 @@ CLI prompt
     + the earnings report for the full month of March of 2016.
     + the earnings report for the full month of April of 2016.
     + the earnings report for the year 2016 up to and including July 26th.
+- Tip:
+    + To add a month from the previous year, simple use the format `YYYY-MM`.
+    + If you add a month that is in the future, the command will return information from that month, but from the previous year instead.
+    + If you simply use `rqcli money` you will get a total of all you have earned up to now.
 
-#### `setup`
-- Command: `rqcli setup <token>`
-- Description: _Sets up a folder, `api`, in the current directory, with all the information needed to start authenticating against the Udacity Reviews API. This command combines the four commands, `token`, `certs`, `assigned` and `feedbacks` into one._
-- Arguments: `<token>`, your token which you can copy from your dashboard > API Access. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`).
+#### `review`
+- Command: `rqcli review`
+- Description: _Times and logs a review. Potentially also runs scritps for certain project types._
+- Example Usage: `rqcli review`.
+
+#### `token`
+- Command: `rqcli token <token>`
+- Description: _Stores an API Auth token and the day-of-year to be able to calculate the tokens age._
+- Arguments: `<token>`, the API authentication token which is available from the reviews dashboard > API Access. Some tokens include dashes (`-`) and these must be in quotes (`"token-moretoken"`).
+
+#### `certs`
+- Command: `rqcli certs --update`
+- Description: _Displays all of the project names with ids for which the authenticated user is certified._
+- Options: `-u`, `--update`, updates certifications.
+
+#### `assigned`
+- Command: `rqcli assigned`
+- Description: _Notifies the user of all submissions that are currently assigned to them._
+- Options: `-n`, `--notify`, uses desktop notifications to notify the user of updates.
+
+#### `feedbacks`
+- Command: `rqcli feedbacks`
+- Description: _Checks for unread feedbacks from the last 30 days_
 - Options: `-n`, `--notify`, uses desktop notifications to notify the user of updates.
 
 # :black_nib: Project Styleguide
