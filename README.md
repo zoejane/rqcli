@@ -78,9 +78,9 @@ CLI prompt
     + `-f`, `--from <date>`, date in the format, `YYYY-MM-DDT00:00:00`, from which to calculate earnings. If the `--to` option is not defined, the period reported on will be from the `--from <date>` date to now.
     + `-t`, `--to <date>`, date in the format, `YYYY-MM-DDT00:00:00`, to which to calculate earnings. If the `--from` option is not defined, the period reported on will be from the date of the first review to the `--to <date>` date.
 - Example Usage: `rqcli money 3 4 --from 2016-01-01 --to 2016-07-26`. This request will return three earnings reports:
-    + the earnings report for the full month of March of 2016.
-    + the earnings report for the full month of April of 2016.
-    + the earnings report for the year 2016 up to and including July 26th.
+    + An earnings report for the full month of March of 2016.
+    + An earnings report for the full month of April of 2016.
+    + An earnings report for the year 2016 up to (but _not_ including) July 26th.
 - Tip:
     + To add a month from the previous year, simple use the format `YYYY-MM`.
     + If you add a month that is in the future, the command will return information from that month, but from the previous year instead.

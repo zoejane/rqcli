@@ -1,15 +1,5 @@
 #!/usr/bin/env node
 
-/**
-* Will have 2 options:
-*   --from: Date from which to select payment information. If no other option
-*       is chosen, all available payment information from the selected date to
-*       now is presented.
-*   --to: Date to which to select payment information. If no ther option is
-*       provided, all available payment information up to the selected date is
-*       presented.
-*/
-
 const moment = require('moment')
 const chalk = require('chalk')
 const apiCall = require('../utils').apiCall
@@ -59,14 +49,15 @@ module.exports = ({auth: {token}}, months, options) => {
 function getDates (months, {from, to}) {
   if (months.length) {
     months.forEach(month => {
-      let monthStart = getMonthStart(month)
-      console.log(monthStart)
-      let monthEnd = moment(monthStart).add(1, 'M')
-      console.log(monthEnd)
-      selectedIntervals.push([Date.parse(monthStart), Date.parse(monthEnd)])
-      console.log(selectedIntervals)
+      let start = getMonthStart(month)
+      let end = moment(start).add(1, 'M')
+      selectedIntervals.push([Date.parse(start), Date.parse(end)])
     })
   }
+  if (!from && !to) return
+  let start = from ? Date.parse(from) : 0
+  let end = to ? Date.parse(to) : Date.parse(new Date())
+  selectedIntervals.push([start, end])
 }
 
 function getMonthStart (month) {
@@ -88,7 +79,7 @@ function validate (months, {from, to}) {
       }
     })
   } else if (from || to) {
-    if (!validateOptions(options)) {
+    if (!validateOptions(from, to)) {
       throw new Error(errorMsg)
     }
   } else {
@@ -107,6 +98,6 @@ function validateMonth (month) {
   return true
 }
 
-function validateOptions ({from, to}) {
+function validateOptions (from, to) {
   return true
 }
