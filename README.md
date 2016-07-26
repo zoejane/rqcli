@@ -86,14 +86,14 @@ CLI prompt
 
 #### `money`
 - Command: `rqcli money [months] --from --to`
-- Description: _Gets all completed reviews and returns a report on earnings in the period(s) specified by the user._
+- Description: _Gets all completed reviews and returns earnings reports for the periods specified by the user._
 - Arguments: `[months]`, space separated list of months to report on.
 - Options:
-    + `-f`, `--from <date>`, date in the format, `YYYY-MM-DDT00:00:00`, from which to calculate earnings. If the `--to` option is not defined, the period use will be from the `--from <date>` date to now.
-    + `-t`, `--to <date>`, date in the format, `YYYY-MM-DDT00:00:00`, to which to calculate earnings. If the `--from` option is not defined, the period will be from the date of the first review to the `--to <date>` date.
+    + `-f`, `--from <date>`, date in the format, `YYYY-MM-DDT00:00:00`, from which to calculate earnings. If the `--to` option is not defined, the period reported on will be from the `--from <date>` date to now.
+    + `-t`, `--to <date>`, date in the format, `YYYY-MM-DDT00:00:00`, to which to calculate earnings. If the `--from` option is not defined, the period reported on will be from the date of the first review to the `--to <date>` date.
 - Example Usage: `rqcli money 3 4 --from 2016-01-01 --to 2016-07-26`. This request will return three earnings reports:
     + the earnings report for the full month of March of 2016.
-    + the earnings report for the full month of May of 2016.
+    + the earnings report for the full month of April of 2016.
     + the earnings report for the year 2016 up to and including July 26th.
 
 #### `setup`
