@@ -82,7 +82,7 @@ CLI prompt
     + An earnings report for the full month of April of 2016.
     + An earnings report for the year 2016 up to (but _not_ including) July 26th.
 - Tip:
-    + To add a month from the previous year, simple use the format `YYYY-MM`.
+    + To add a month from the previous year, simply use the format `YYYY-MM`.
     + If you add a month that is in the future, the command will return information from that month, but from the previous year instead.
     + If you simply use `rqcli money` you will get a total of all you have earned up to now.
 
