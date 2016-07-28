@@ -8,8 +8,6 @@ const apiCall = require('../utils').apiCall
 
 const rl = readline.createInterface(process.stdin, process.stdout)
 
-const alt = require('../api/test.json')
-
 module.exports = ({auth: {token}}) => {
   return new Promise((resolve, reject) => {
     apiCall(token, 'assigned')
@@ -18,9 +16,8 @@ module.exports = ({auth: {token}}) => {
       let activeReview = 0
       let project
       if (assigned.length === 0) {
-        assigned = alt // testing
-        // console.log('No reviews are currently assigned to you.')
-        // reject()
+        console.log('No reviews are currently assigned to you.')
+        return reject()
       }
       // Display assigned
       if (assigned.length > 1) {
