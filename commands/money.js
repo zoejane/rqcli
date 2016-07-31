@@ -62,7 +62,7 @@ function countProject (review) {
   report.totalEarned += parseInt(review.price)
 }
 
-function printProject() {
+function printProject () {
   let {projects, ungradeable, totalEarned} = report
   console.log(chalk.white(`Projects: ${JSON.stringify(projects)}`))
   console.log(chalk.white(`Ungradeable: ${JSON.stringify(ungradeable)}`))
@@ -98,15 +98,15 @@ function getMonthStart (month) {
 
 // Validation
 
-function validate (months, {from, to}) {
+function validate (months, options) {
   if (months.length) {
     months.forEach(month => {
       if (!validateMonth(month)) {
         throw new Error(errorMsg)
       }
     })
-  } else if (from || to) {
-    if (!validateOptions(from, to)) {
+  } else if (options.from || options.to) {
+    if (!validateOptions(options)) {
       throw new Error(errorMsg)
     }
   } else {
@@ -114,12 +114,28 @@ function validate (months, {from, to}) {
   }
 }
 
+// Really basic validation of date input.
 function validateMonth (month) {
-  return true
+  let currentMonth = moment().month() + 1
+  if (month.length > 2) {
+    return moment(month)._pf.iso
+  } else if (month.length <= 2) {
+    if (month.length > 12 || month.length < 1 || parseInt(month) > currentMonth) {
+      return false
+    }
+    return true
+  }
 }
 
-function validateOptions (from, to) {
-  return true
+function validateOptions ({from, to}) {
+  console.log(moment(from)._pf.iso, moment(to)._pf.iso)
+  if (from && to) {
+    return moment(from)._pf.iso && moment(to)._pf.iso
+  }
+  if (from) {
+    return moment(from)._pf.iso
+  }
+  return moment(to)._pf.iso
 }
 
 function printHelp () {
