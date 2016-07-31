@@ -4,7 +4,6 @@ const moment = require('moment')
 const chalk = require('chalk')
 const apiCall = require('../utils').apiCall
 
-let errorMsg = ''
 let selectedIntervals = []
 let report
 
@@ -22,7 +21,7 @@ module.exports = ({auth: {token}}, months, options) => {
             countProject(review)
           }
         })
-        printProject()
+        printReport(interval)
       })
       resolve()
     })
@@ -30,10 +29,8 @@ module.exports = ({auth: {token}}, months, options) => {
 }
 
 // Reports
-
 function newReport () {
   return {
-    ungradeable: {},
     projects: {},
     totalEarned: 0
   }
@@ -45,33 +42,44 @@ function isInInterval (review, interval) {
 }
 
 function countProject (review) {
-  let id = review.project.id
-  if (review.result === 'ungradeable') {
-    if (report.ungradeable[id]) {
-      report.ungradeable[id] += 1
-    } else {
-      report.ungradeable[id] = 1
+  let id = review.project_id
+  let price = parseInt(review.price)
+
+  if (!report.projects[id]) {
+    report.projects[id] = {
+      name: review.project.name,
+      id: id,
+      passed: 0,
+      failed: 0,
+      ungradeable: 0,
+      earned: 0
     }
-  } else {
-    if (report.projects[id]) {
-      report.projects[id] += 1
-    } else {
-      report.projects[id] = 1
-    }
+    countProject(review)
   }
-  report.totalEarned += parseInt(review.price)
+
+  report.projects[id][review.result] += 1
+  report.projects[id].earned += price
+  report.totalEarned += price
 }
 
-function printProject () {
-  let {projects, ungradeable, totalEarned} = report
-  console.log(chalk.white(`Projects: ${JSON.stringify(projects)}`))
-  console.log(chalk.white(`Ungradeable: ${JSON.stringify(ungradeable)}`))
-  console.log(chalk.blue(`Total Earned: ${totalEarned}`))
-  console.log('---')
+function printReport (interval) {
+  let {projects, totalEarned} = report
+  let startDate = moment(interval[0]).format('YYYY-MM-DD')
+  let endDate = moment(interval[1]).format('YYYY-MM-DD')
+  console.log('========================================')
+  console.log(chalk.blue(`Earnings Report for ${startDate} to ${endDate}:\n`))
+  for (project in projects) {
+    let {name, id, ungradeable, passed, failed, earned} = projects[project]
+    console.log(`    Project: ${name} (${id}):`)
+    console.log(chalk.white(`        Total reviewed: ${passed + failed}`))
+    console.log(chalk.white(`        Ungradeable: ${ungradeable}`))
+    console.log(chalk.white(`        Total earned: ${earned}\n`))
+  }
+  console.log(chalk.bgBlack.white(`Total Earned: ${totalEarned}`))
+  console.log('========================================')
 }
 
 // Dates
-
 function getDates (months, {from, to}) {
   if (months.length) {
     months.forEach(month => {
@@ -80,9 +88,11 @@ function getDates (months, {from, to}) {
       selectedIntervals.push([Date.parse(start), Date.parse(end)])
     })
   }
-  let start = from ? Date.parse(from) : 0
-  let end = to ? Date.parse(to) : Date.parse(new Date())
-  selectedIntervals.push([start, end])
+  if (from || to) {
+    let start = from ? Date.parse(from) : 0
+    let end = to ? Date.parse(to) : Date.parse(new Date())
+    selectedIntervals.push([start, end])
+  }
 }
 
 function getMonthStart (month) {
@@ -97,20 +107,17 @@ function getMonthStart (month) {
 }
 
 // Validation
-
 function validate (months, options) {
   if (months.length) {
     months.forEach(month => {
       if (!validateMonth(month)) {
-        throw new Error(errorMsg)
+        throw new Error('Invalid month: ${month}.')
       }
     })
   } else if (options.from || options.to) {
     if (!validateOptions(options)) {
-      throw new Error(errorMsg)
+      throw new Error('Invalid options.')
     }
-  } else {
-    printHelp()
   }
 }
 
@@ -136,8 +143,4 @@ function validateOptions ({from, to}) {
     return moment(from)._pf.iso
   }
   return moment(to)._pf.iso
-}
-
-function printHelp () {
-  console.log('printing help.')
 }
