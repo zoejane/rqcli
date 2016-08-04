@@ -24,7 +24,7 @@ module.exports = (config, projectQueue, options) => {
   const tickRate = 1000
 
   const assignedInterval = 60
-  const feedbacksInterval = 300
+  const feedbacksInterval = 10 // 300
 
   let assigned = 0
   let assignedTotal = 1
@@ -50,12 +50,14 @@ module.exports = (config, projectQueue, options) => {
       .then(unread => {
         if (options.notify) {
           unread.forEach(fb => {
-            if (!unreadFeedbacks.has(fb.submissions)) {
+            if (!unreadFeedbacks.has(fb.id)) {
               config.feedbacks.notify(fb)
             }
           })
         }
-        unreadFeedbacks = new Set(unread.filter(fb => fb.submission_id))
+        unreadFeedbacks = new Set(unread.map(fb => fb.id))
+        // console.log(unreadFeedbacks)
+        // process.exit(0)
       })
     }
 
