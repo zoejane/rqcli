@@ -8,10 +8,80 @@ const assigned = require('./assigned')
 
 const rl = readline.createInterface(process.stdin, process.stdout)
 
-function askUser (query) {
+const actions = {
+  start (review, restart=false) {
+    if (!restart) {
+      runScript(review)
+      startLog(review)
+    }
+    askUser('Pause or end? (end):', 'end', ['pause', 'end'])
+    .then(answer => {
+      actions[answer](review)
+    })
+  },
+  end (review) {
+    endLog(review)
+    console.log('Review done.')
+    process.exit(0)
+  },
+  pause (review) {
+    askUser('unpause or end? (unpause):', 'unpause', ['unpause', 'end'])
+    .then(answer => {
+      actions[answer]
+    })
+  },
+  unpause (review) {
+    restartLog(review)
+    actions.start(review, true)
+  }
+}
+
+module.exports = (config) => {
   return new Promise((resolve, reject) => {
-    rl.question(`${query} `, function (value) {
-      resolve(value)
+    getReviews(config)
+    .then(reviews => {
+      printReviews(reviews)
+
+      askUser('Start review? (0):', '0', reviews.map((r, i) => i.toString()))
+      .then(answer => {
+        actions.start(reviews[answer])
+      })
+      .catch(err => {
+        console.log(err)
+      })
+    })
+  })
+}
+
+function startLog (review) {
+  console.log('starting logs')
+}
+
+function restartLog (review) {
+  console.log('restarting logs')
+}
+
+function endLog (review) {
+  console.log('ending logs')
+}
+
+function askUser (query, preselected, accept) {
+  valid = new Set(['exit', ...accept])
+  return new Promise((resolve, reject) => {
+    rl.question(`${query} `, answer => {
+      if (answer === 'exit') {
+        console.log('Exiting...')
+        process.exit(0)
+      }
+      if (answer === '') {
+        resolve(preselected)
+      } else if (!valid.has(answer)) {
+        console.log('Invalid command. Please select one of the following commands:')
+        console.log([...valid].join(', '))
+        askUser(query, preselected, accept)
+      } else {
+        resolve(answer)
+      }
     })
   })
 }
@@ -32,64 +102,31 @@ function getReviews (config) {
   })
 }
 
-module.exports = (config) => {
-  return new Promise((resolve, reject) => {
-    getReviews(config)
-    .then(reviews => {
-      let activeReview = reviews[0]
-      if (reviews.length > 1) {
-        console.log('Projects ready for review:')
-        reviews.forEach((review, i) => {
-          const when = moment(review.assigned_at).fromNow()
-          console.log(chalk.blue(
-            `    [${i}] ${review.project.name} (${review.project.id}), assigned ${when}`))
-        })
-        askUser('Choose a project (0):')
-        .then(val => {
-          if (val) {
-            activeReview = reviews[1]
-          }
-        })
-      }
-      console.log('hi')
-      process.exit(0)
-    })
-    .catch(() => {
-      console.log('caught')
-      process.exit(0)
-    })
-  })
-}
+function runScript (submission) {
+  const script = checkForScript(submission.project_id)
 
-function runScript (project) {
-  let script = checkForScript(project.project_id)
-  if (script === undefined) {
+  if (!script) {
     console.log('No script found')
   } else {
-    script(project)
+    script(submission)
   }
 }
 
-function checkForScript (projectId) {
-  let script
+function checkForScript (folderName) {
   try {
-    script = require(path.resolve(`${projectId}`))
+    return require(path.resolve(`${folderName}`))
   } catch (e) {
     if (e.code !== 'MODULE_NOT_FOUND') {
       throw new Error(e)
     }
-    console.log('No scripts to run.')
   }
-  return script
 }
 
-function validateInput (input, defaultValue, valid) {
-  let answer = input === '' ? defaultValue : input
-  if (typeof valid[0] === 'number') {
-    answer = parseInt(answer)
-  }
-  if (!valid.has(answer)) {
-    throw new Error('Wrong input.')
-  }
-  return answer
+function printReviews (reviews) {
+  console.log('Project(s) ready for review:')
+  reviews.forEach((review, i) => {
+    const when = moment(review.assigned_at).fromNow()
+    console.log(chalk.blue(
+      `    [${i}] ${review.project.name} (${review.project.id}), assigned ${when}`))
+  })
 }
