@@ -4,15 +4,37 @@ const path = require('path')
 const readline = require('readline')
 const moment = require('moment')
 const chalk = require('chalk')
+const bunyan = require('bunyan')
 const assigned = require('./assigned')
 
+const log = bunyan.createLogger({
+  name: 'rqcli',
+  streams: [{
+    path: 'api/reviews.log'
+  }]
+})
 const rl = readline.createInterface(process.stdin, process.stdout)
+
+const logger = {
+  start (review) {
+    log.info({review: review})
+  },
+  restart (review) {
+    log.info({review: review}, 'restarting')
+  },
+  end (review) {
+    log.info({review: review}, 'ending')
+  },
+  error (err, review) {
+    log.err({review: review, err: err})
+  }
+}
 
 const actions = {
   start (review, restart=false) {
     if (!restart) {
       runScript(review)
-      startLog(review)
+      logger.start(review)
     }
     askUser('Pause or end? (end):', 'end', ['pause', 'end'])
     .then(answer => {
@@ -20,7 +42,7 @@ const actions = {
     })
   },
   end (review) {
-    endLog(review)
+    logger.end(review)
     console.log('Review done.')
     process.exit(0)
   },
@@ -31,7 +53,7 @@ const actions = {
     })
   },
   unpause (review) {
-    restartLog(review)
+    logger.restart(review)
     actions.start(review, true)
   }
 }
@@ -51,18 +73,6 @@ module.exports = (config) => {
       })
     })
   })
-}
-
-function startLog (review) {
-  console.log('starting logs')
-}
-
-function restartLog (review) {
-  console.log('restarting logs')
-}
-
-function endLog (review) {
-  console.log('ending logs')
 }
 
 function askUser (query, preselected, accept) {
