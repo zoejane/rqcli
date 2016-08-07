@@ -82,9 +82,6 @@ cli.command('review')
   .description('Start reviewing a project.')
   .action(() => {
     cmd.review(config)
-    .then(() => {
-      process.exit(0)
-    })
   })
 
 cli.command('money [months...]')

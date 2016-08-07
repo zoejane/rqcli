@@ -86,7 +86,7 @@ Sample CLI prompt
 
 #### `review`
 - Command: `rqcli review`
-- Description: _Times and logs a review. Potentially also runs scritps for certain project types._
+- Description: _Logs a review. Potentially also runs scritps for certain project types._
 - Example Usage: `rqcli review`.
 
 #### `token`
