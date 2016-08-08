@@ -88,6 +88,14 @@ Sample CLI prompt
 - Command: `rqcli review`
 - Description: _Logs a review. Potentially also runs scritps for certain project types._
 - Example Usage: `rqcli review`.
+    + This will allow you to select an assigned submission to start reviewing.
+    + During the review you can pause, unpause and end the review. Each action will be logged.
+    + `pre` and `post` scripts will be run if they are defined.
+- Tips:
+    + You can place an `index.js` in the folder of the project type you are reviewing with scripts to be run on that project type. It supports running the following scripts:
+        * `pre`: Will be run _before_ the review is logged and started.
+        * `post`: Will be run right _after_ you log the end of the review.
+    + You can `exit` a review, thereby avoiding running any post-scripts. You might do this if your post-script is deleting the submission and you want to keep it.
 
 #### `token`
 - Command: `rqcli token <token>`
