@@ -142,9 +142,6 @@ function getAssignedSubmissions (config) {
   return new Promise((resolve, reject) => {
     assigned(config, {})
     .then(submissions => {
-      // Testcode
-      submissions = require('../api/test.json')
-      // Testcode
       if (!submissions.length) {
         reject('No submissions are currently assigned to you.')
       } else {
