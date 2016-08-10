@@ -1,11 +1,21 @@
 #!/usr/bin/env node
 
+const fs = require('fs')
 const path = require('path')
 const readline = require('readline')
 const moment = require('moment')
 const chalk = require('chalk')
 const bunyan = require('bunyan')
 const assigned = require('./assigned')
+
+// Sets up the folder for auth info and logging info.
+try {
+  fs.mkdirSync(path.resolve('api'))
+} catch (e) {
+  if (e.code !== 'EEXIST') {
+    throw new Error(e)
+  }
+}
 
 const log = bunyan.createLogger({
   name: 'rqcli',

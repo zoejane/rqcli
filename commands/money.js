@@ -135,7 +135,6 @@ function validateMonth (month) {
 }
 
 function validateOptions ({from, to}) {
-  console.log(moment(from)._pf.iso, moment(to)._pf.iso)
   if (from && to) {
     return moment(from)._pf.iso && moment(to)._pf.iso
   }
