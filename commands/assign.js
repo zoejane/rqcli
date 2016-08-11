@@ -27,7 +27,7 @@ module.exports = (config, projectQueue, options) => {
   const feedbacksInterval = 300
 
   let assigned = 0
-  let assignedTotal = 1
+  let assignedTotal = 0
   let unreadFeedbacks = new Set()
   let callsTotal = 0
   let errorMsg = ''
@@ -86,7 +86,7 @@ module.exports = (config, projectQueue, options) => {
           notifier.notify({
             title: 'New Review Assigned!',
             message: `${moment().format('HH:mm')} - ${res.body.project.name}`,
-            open: `https://review.udacity.com/#!/reviews/${res.body.id}`,
+            open: `https://review.udacity.com/#!/submissions/${res.body.id}`,
             icon: 'clipboard.png',
             sound: 'Ping'
           })
@@ -145,10 +145,10 @@ module.exports = (config, projectQueue, options) => {
     }
 
     // Total number of reviews assigned this session
-    if (options.assigned) {
+    if (options.assignedTotal) {
       console.log(chalk.green(`Reviews assigned: ${chalk.white(assignedTotal)} since ${startTime.format('dddd, MMMM Do YYYY, HH:mm')}`))
     }
-    console.log(chalk.green(`Press ${chalk.white('ctrl+c')} to exit`))
+    console.log(chalk.green.dim(`Press ${chalk.white('ctrl+c')} to exit`))
   }
 }
 
