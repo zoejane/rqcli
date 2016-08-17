@@ -2,26 +2,14 @@
 
 const fs = require('fs')
 const path = require('path')
+const winston = require('winston')
 const readline = require('readline')
 const moment = require('moment')
 const chalk = require('chalk')
-const bunyan = require('bunyan')
 const assigned = require('./assigned')
 
-// Sets up the folder for auth info and logging info.
-try {
-  fs.mkdirSync(path.resolve('api'))
-} catch (e) {
-  if (e.code !== 'EEXIST') {
-    throw new Error(e)
-  }
-}
-
-const log = bunyan.createLogger({
-  name: 'rqcli',
-  streams: [{
-    path: 'api/reviews.log'
-  }]
+winston.add(winston.transports.File, {
+  filename: 'api/reviews.log'
 })
 const rl = readline.createInterface(process.stdin, process.stdout)
 
@@ -45,7 +33,7 @@ class Review {
 
   // Actions
   start () {
-    log.info({
+    winston.info({
       action: 'start',
       id: this.id,
       submission: this.submission
@@ -58,7 +46,7 @@ class Review {
   }
 
   pause () {
-    log.info({
+    winston.info({
       action: 'pause',
       id: this.id
     })
@@ -66,7 +54,7 @@ class Review {
   }
 
   unpause () {
-    log.info({
+    winston.info({
       action: 'unpause',
       id: this.id
     })
@@ -74,7 +62,7 @@ class Review {
   }
 
   end () {
-    log.info({
+    winston.info({
       action: 'end',
       id: this.id
     })
@@ -86,7 +74,7 @@ class Review {
   }
 
   exit () {
-    log.info({
+    winston.info({
       action: 'exit',
       id: this.id
     })
@@ -135,7 +123,8 @@ module.exports = (config) => {
   getAssignedSubmissions(config)
   .then(submissions => {
     printSubmissions(submissions)
-    Review.prompt('Start review?', [...submissions.keys()])
+    let accept = [...submissions.keys()].forEach(k => k.toString())
+    Review.prompt('Start review?', accept)
     .then(answer => {
       const review = new Review(submissions[answer])
       review.start()
