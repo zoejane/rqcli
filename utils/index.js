@@ -1,3 +1,4 @@
 module.exports = {
-  apiCall: require('./apiCall')
+  apiCall: require('./apiCall'),
+  checkDirectorySync: require('./checkDirectorySync')
 }
