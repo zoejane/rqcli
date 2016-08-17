@@ -43,10 +43,9 @@ module.exports = (token, task, id = '') => {
     request(options, (err, res, body) => {
       if (err) {
         reject(err)
-      } else if (res.statusCode === 401) {
-        throw new Error('401: Unauthorized')
+      } else {
+        resolve(res)
       }
-      resolve(res)
     })
   })
 }
