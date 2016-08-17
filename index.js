@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 
+const fs = require('fs')
+const path = require('path')
 const cli = require('commander')
 const pkg = require('./package')
 const cmd = require('./commands')
 let config = require('./config')
+
+// Check that we're in the right folder unless we're using the setup command.
+if (process.argv[2] != 'setup') {
+  checkDirectorySync('./api')
+}
 
 // Instantiate the CLI
 cli.name('rqcli')
@@ -107,6 +114,14 @@ cli.command('setup <token>')
   .description('set up your review environment')
   .option('-n, --notify', 'Get desktop notifications of reviews status.')
   .action((token, options) => {
+    // Sets up the folder for auth and logging.
+    try {
+      fs.mkdirSync(path.resolve('api'))
+    } catch (e) {
+      if (e.code !== 'EEXIST') {
+        throw new Error(e)
+      }
+    }
     // Sets the certifications to always update when the init command is run.
     options.update = true
     cmd.token(config, token)
@@ -124,6 +139,10 @@ cli.command('setup <token>')
     })
     .then(unread => {
       console.log(`You have ${unread.length} unread feedbacks.`)
+      process.exit(0)
+    })
+    .catch(err => {
+      console.log(err)
       process.exit(0)
     })
   })
