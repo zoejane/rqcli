@@ -88,10 +88,18 @@ function getDates (months, {from, to}) {
       selectedIntervals.push([Date.parse(start), Date.parse(end)])
     })
   }
+
   if (from || to) {
     let start = from ? Date.parse(from) : 0
     let end = to ? Date.parse(to) : Date.parse(new Date())
     selectedIntervals.push([start, end])
+  }
+
+  if (!months.length && !from && !to) {
+    let start = getMonthStart(moment().month() + 1)
+    let end = new Date()
+    selectedIntervals.push([Date.parse(start), Date.parse(end)])
+    selectedIntervals.push([Date.parse(0), Date.parse(end)])
   }
 }
 
