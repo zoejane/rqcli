@@ -5,11 +5,12 @@ const path = require('path')
 const cli = require('commander')
 const pkg = require('./package')
 const cmd = require('./commands')
-let config = require('./config')
+const config = require('./config')
+const checkDirectorySync = require('./utils').checkDirectorySync
 
 // Check that we're in the right folder unless we're using the setup command.
 if (process.argv[2] != 'setup') {
-  checkDirectorySync('./api')
+  checkDirectorySync('api')
 }
 
 // Instantiate the CLI
