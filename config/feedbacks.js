@@ -8,7 +8,7 @@ module.exports = {
     notifier.notify({
       title: `New ${fb.rating}-star Feedback!`,
       message: `Project: ${fb.project.name}`,
-      open: `https://review.udacity.com/#!/submissions/${fb.submission_id}`,
+      open: `https://review.udacity.com/#!/reviews/${fb.submission_id}`,
       icon: path.join(__dirname, 'clipboard.png'),
       sound: 'Pop'
     })
