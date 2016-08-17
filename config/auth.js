@@ -5,13 +5,6 @@ const path = require('path')
 
 let auth = {
   save (token, tokenAge) {
-    try {
-      fs.mkdirSync(path.resolve('api'))
-    } catch (e) {
-      if (e.code !== 'EEXIST') {
-        throw new Error(e)
-      }
-    }
     fs.writeFileSync(path.resolve('api/auth.json'), JSON.stringify({
       token: token,
       tokenAge: tokenAge
