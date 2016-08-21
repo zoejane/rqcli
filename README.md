@@ -8,9 +8,9 @@
 - [Node.js](https://nodejs.org/en/download/) v6.0.0 or higher
 - NPM (v3.0.0+ recommended) (this comes with Node.js)
 
-#### Instructions
+#### Installation
 
-`rqcli` is a [Node](https://nodejs.org/) module. So, as long as you have Node.js and NPM installed, installing `rqcli` is as simple as running the following command in a terminal:
+`rqcli` is a [Node](https://nodejs.org/) module. So as long as you have Node.js and NPM installed, installing `rqcli` is as simple as running the following command in a terminal:
 
 ```sh
 $ npm install rqcli --global
@@ -83,11 +83,14 @@ Sample CLI prompt
     - An earnings report for the full month of April 2016.
     - An earnings report for the year 2016 up to (but _not_ including) July 26th.
 - Tips:
-    - If you simply use `rqcli money` you will get a total of all you have earned up to now.
-    - To add a month from the previous year, simply use the format `YYYY-MM`.
+    - If you simply use `rqcli money` you will get a total of all you have earned up to now as well as an earnings report for the current month.
+    - To add a month from the previous year, simply use the format `YYYY-MM`: `rqcli money 2015-11`.
     - If you add a month that is in the future, the command will return information from the month of the previous year instead.
 
 #### `review`
+
+`review` is a somewhat experimental command. It's meant to log your review activity so that you can eventually check things like how long you spend on a review type and so on. It's also meant to be able to run scripts for automation. Such a script might be a download and unzip-script or something similar and it can run both pre- and post-scripts. It does require some setup, so unless you need it, you may want to just use this command for logging reviews.
+
 - Command: `rqcli review`
 - Description: _Logs a review. Potentially also runs scritps for certain project types._
 - Example Usage: `rqcli review`.
@@ -112,7 +115,7 @@ Sample CLI prompt
 
 #### `assigned`
 - Command: `rqcli assigned`
-- Description: _Notifies the user of all submissions that are currently assigned to them._
+- Description: _Gets all submissions that are currently assigned to the user._
 - Options: `-n`, `--notify`, uses desktop notifications.
 
 #### `feedbacks`
