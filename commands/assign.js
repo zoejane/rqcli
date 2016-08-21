@@ -30,6 +30,7 @@ module.exports = (config, projectQueue, options) => {
   let assignedTotal = 0
   let unreadFeedbacks = new Set()
   let callsTotal = 0
+  let statusCode = ''
   let errorMsg = ''
   let tick = 0
 
@@ -107,6 +108,10 @@ module.exports = (config, projectQueue, options) => {
   * Writes the current information to the terminal.
   */
   function setPrompt (taskMsg) {
+    const uptime = startTime.fromNow(true)
+    let assignedMsg = ' - checking...'
+    let fbMsg = ' - checking...'
+
     // Clearing the screen
     readline.cursorTo(process.stdout, 0, 0)
     readline.clearScreenDown(process.stdout)
@@ -115,39 +120,40 @@ module.exports = (config, projectQueue, options) => {
     if (tokenExpiryWarning()) {
       console.log(chalk.red(`Token expires ${moment().dayOfYear(tokenAge).fromNow()}`))
     }
+    if (errorMsg) {
+      console.log(chalk.red(`Server responded with statuscode ${errorMsg}`))
+    }
 
     // Genral info
-    let uptime = startTime.fromNow(true)
     console.log(chalk.green(`Uptime: ${chalk.white(uptime)}`))
     console.log(chalk.green(`Current task: ${chalk.white(taskMsg)}`))
     console.log(chalk.green(`Total requests for assignments: ${chalk.white(callsTotal)}`))
 
-    // Assigned
-    let assignedMsg = ' - checking...'
+    // Display number of assigned
     if (!checkInterval(assignedInterval)) {
       assignedMsg = ` - updating in ${countdown(assignedInterval)} seconds`
     }
     console.log(chalk.blue(
       `-> Currently assigned: ${chalk.white(assigned)}${chalk.yellow.dim(assignedMsg)}`))
 
-    // Feedbacks
+    // Dipslay number of unread feedbacks
     if (options.feedbacks) {
-      let fbMsg = ' - checking...'
       if (!checkInterval(feedbacksInterval)) {
         let duration = moment.duration(countdown(feedbacksInterval), 'seconds')
         fbMsg = ` - updating ${duration.humanize(true)}`
       }
       console.log(chalk.blue(`-> Unread feedbacks: ${chalk.white(unreadFeedbacks.size)}${chalk.yellow.dim(fbMsg)}`))
     }
-    // Errors
-    if (errorMsg) {
-      console.log(chalk.red(`Server responded with ${errorMsg}`))
-    }
+
+    // Display statuscodes
+    console.log(chalk.blue(`-> Latest Statuscode: ${chalk.white(statusCode)}`))
 
     // Total number of reviews assigned this session
     if (options.assignedTotal) {
       console.log(chalk.green(`Reviews assigned: ${chalk.white(assignedTotal)} since ${startTime.format('dddd, MMMM Do YYYY, HH:mm')}`))
     }
+
+    // How to exit
     console.log(chalk.green.dim(`Press ${chalk.white('ctrl+c')} to exit`))
   }
 }
