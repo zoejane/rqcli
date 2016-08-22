@@ -31,8 +31,9 @@ module.exports = (config, projectQueue, options) => {
   let unreadFeedbacks = new Set()
   let callsTotal = 0
   let statusCode = ''
-  let errorMsg = ''
+  let errorMsg = false
   let tick = 0
+  let fourTwentyNines = 0
 
   const checkInterval = interval => tick % interval === 0
   const countdown = interval => interval - tick % interval
@@ -76,12 +77,13 @@ module.exports = (config, projectQueue, options) => {
       let projectId = projectQueue[callsTotal % projectQueue.length]
       setPrompt(`Requesting assignment for project ${projectId}`)
 
-      errorMsg = ''
+      errorMsg = false
       callsTotal++
 
       apiCall(token, 'assign', projectId)
       .then(res => {
-        if (res.statusCode === 201) {
+        statusCode = res.statusCode
+        if (statusCode === 201) {
           assigned++
           assignedTotal++
           notifier.notify({
@@ -91,8 +93,11 @@ module.exports = (config, projectQueue, options) => {
             icon: 'clipboard.png',
             sound: 'Ping'
           })
-        } else if (res.statusCode !== 404) {
-          errorMsg = res.statusCode
+        } else if (statusCode !== 404) {
+          if (statusCode === 429) {
+            fourTwentyNines++
+          }
+          errorMsg = true
         }
       })
     }
@@ -121,7 +126,7 @@ module.exports = (config, projectQueue, options) => {
       console.log(chalk.red(`Token expires ${moment().dayOfYear(tokenAge).fromNow()}`))
     }
     if (errorMsg) {
-      console.log(chalk.red(`Server responded with statuscode ${errorMsg}`))
+      console.log(chalk.red(`Server responded with statuscode ${statusCode}`))
     }
 
     // Genral info
@@ -147,6 +152,7 @@ module.exports = (config, projectQueue, options) => {
 
     // Display statuscodes
     console.log(chalk.blue(`-> Latest Statuscode: ${chalk.white(statusCode)}`))
+    console.log(chalk.blue(`-> 429s: ${chalk.white(fourTwentyNines)}`))
 
     // Total number of reviews assigned this session
     if (options.assignedTotal) {
